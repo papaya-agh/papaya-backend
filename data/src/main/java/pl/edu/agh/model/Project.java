@@ -1,4 +1,4 @@
-package pl.agh.edu.model;
+package pl.edu.agh.model;
 
 public class Project {
 
