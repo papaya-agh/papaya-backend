@@ -5,20 +5,22 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
 @Entity
 public class Availability {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
     // TODO: hook up reference
     @Transient
     private UserInProject userInProject;
 
-    // TODO: hook up reference
-    @Transient
+    @ManyToOne
+    @JoinColumn(name = "sprintId")
     private Sprint sprint;
 
     private Duration timeAvailable;

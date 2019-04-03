@@ -3,9 +3,11 @@ package pl.edu.agh.model;
 import java.time.Duration;
 import java.util.List;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
 @Entity
@@ -26,9 +28,11 @@ public class Sprint {
 
     private Duration timeWorked;
 
-    // TODO: hook up reference
-    @Transient
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint")
     private List<Availability> availabilities;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint")
+    private List<Notification> notifications;
 
     private Sprint() {
     }
