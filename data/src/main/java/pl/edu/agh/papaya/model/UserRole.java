@@ -1,4 +1,4 @@
-package pl.edu.agh.model;
+package pl.edu.agh.papaya.model;
 
 public enum UserRole {
     ADMIN,

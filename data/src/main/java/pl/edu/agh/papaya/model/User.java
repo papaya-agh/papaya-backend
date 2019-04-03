@@ -1,4 +1,4 @@
-package pl.edu.agh.model;
+package pl.edu.agh.papaya.model;
 
 import java.util.List;
 import javax.persistence.Column;
