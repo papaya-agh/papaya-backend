@@ -5,10 +5,17 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Availability {
 
@@ -21,49 +28,9 @@ public class Availability {
     private UserInProject userInProject;
 
     @ManyToOne
-    @JoinColumn(name = "sprintId")
     private Sprint sprint;
 
     private Duration timeAvailable;
 
     private Duration delayFromPreviousSprint;
-
-    public Availability() {
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    private UserInProject getUserInProject() {
-        return userInProject;
-    }
-
-    private void setUserInProject(UserInProject userInProject) {
-        this.userInProject = userInProject;
-    }
-
-    private Sprint getSprint() {
-        return sprint;
-    }
-
-    private void setSprint(Sprint sprint) {
-        this.sprint = sprint;
-    }
-
-    private Duration getTimeAvailable() {
-        return timeAvailable;
-    }
-
-    private void setTimeAvailable(Duration timeAvailable) {
-        this.timeAvailable = timeAvailable;
-    }
-
-    private Duration getDelayFromPreviousSprint() {
-        return delayFromPreviousSprint;
-    }
-
-    private void setDelayFromPreviousSprint(Duration delayFromPreviousSprint) {
-        this.delayFromPreviousSprint = delayFromPreviousSprint;
-    }
 }

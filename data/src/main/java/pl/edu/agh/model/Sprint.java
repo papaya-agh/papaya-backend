@@ -9,7 +9,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Sprint {
 
@@ -33,43 +41,4 @@ public class Sprint {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint")
     private List<Notification> notifications;
-
-    private Sprint() {
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    private boolean isClosed() {
-        return closed;
-    }
-
-    public Project getProject() {
-        return project;
-    }
-
-    public LocalDateTimeRange getDate() {
-        return date;
-    }
-
-    public LocalDateTimeRange getEnrollmentDate() {
-        return enrollmentDate;
-    }
-
-    private void setClosed(boolean closed) {
-        this.closed = closed;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
-    public void setDate(LocalDateTimeRange date) {
-        this.date = date;
-    }
-
-    public void setEnrollmentDate(LocalDateTimeRange enrollmentDate) {
-        this.enrollmentDate = enrollmentDate;
-    }
 }

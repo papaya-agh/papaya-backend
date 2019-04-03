@@ -4,7 +4,13 @@ import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import javax.persistence.Embeddable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
+@AllArgsConstructor
 @Embeddable
 public class LocalDateTimeRange {
 
@@ -16,31 +22,38 @@ public class LocalDateTimeRange {
         this.end = this.start;
     }
 
-    public LocalDateTimeRange(LocalDateTime start, LocalDateTime end) {
-        this.start = start;
-        this.end = end;
-    }
-
-    public LocalDateTime getStart() {
-        return start;
-    }
-
-    public LocalDateTime getEnd() {
-        return end;
-    }
-
     public void setStart(LocalDateTime start) {
-        if (this.end != null && start.isAfter(this.end)) {
+        if (start.isAfter(this.end)) {
             throw new DateTimeException("Start date cannot be after the end date.");
         }
         this.start = start;
     }
 
     public void setEnd(LocalDateTime end) {
-        if (this.start != null && end.isBefore(this.start)) {
+        if (end.isBefore(this.start)) {
             throw new DateTimeException("End date cannot be before the start date.");
         }
         this.end = end;
+    }
+
+    public void set(LocalDateTime start, LocalDateTime end) {
+        if (start.isBefore(end)) {
+            throw new DateTimeException("Invalid date range.");
+        }
+        this.start = start;
+        this.end = end;
+    }
+
+    public void extendToContain(LocalDateTime date) {
+        if (date.isBefore(this.start)) {
+            this.start = date;
+        } else if (date.isAfter(this.end)) {
+            this.end = date;
+        }
+    }
+
+    public void extendBy(Duration duration) {
+        this.end = this.end.plus(duration);
     }
 
     public Duration getDuration() {

@@ -8,10 +8,17 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Notification {
 
@@ -20,7 +27,6 @@ public class Notification {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "sprintId")
     private Sprint sprint;
 
     // TODO: hook up reference
@@ -32,43 +38,4 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     @Column(length = 64)
     private NotificationType type;
-
-    public Notification() {
-    }
-
-    private long getId() {
-        return id;
-    }
-
-    private Sprint getSprint() {
-        return sprint;
-    }
-
-    private void setSprint(Sprint sprint) {
-        this.sprint = sprint;
-    }
-
-    private UserInProject getUserInProject() {
-        return userInProject;
-    }
-
-    private void setUserInProject(UserInProject userInProject) {
-        this.userInProject = userInProject;
-    }
-
-    private LocalDateTime getLastNotificationDate() {
-        return lastNotificationDate;
-    }
-
-    private void setLastNotificationDate(LocalDateTime lastNotificationDate) {
-        this.lastNotificationDate = lastNotificationDate;
-    }
-
-    private NotificationType getType() {
-        return type;
-    }
-
-    private void setType(NotificationType type) {
-        this.type = type;
-    }
 }
