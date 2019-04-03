@@ -12,14 +12,14 @@ import javax.persistence.Transient;
 
 @Entity
 public class Sprint {
+
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
     // TODO: hook up reference
     @Transient
     private Project project;
-
 
     private LocalDateTimeRange date;
     private LocalDateTimeRange enrollmentDate;

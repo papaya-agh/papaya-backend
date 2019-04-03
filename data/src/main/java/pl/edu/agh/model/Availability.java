@@ -11,6 +11,7 @@ import javax.persistence.Transient;
 
 @Entity
 public class Availability {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;

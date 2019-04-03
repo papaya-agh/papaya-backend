@@ -14,8 +14,9 @@ import javax.persistence.Transient;
 
 @Entity
 public class Notification {
+
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
     @ManyToOne

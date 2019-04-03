@@ -7,6 +7,7 @@ import javax.persistence.Embeddable;
 
 @Embeddable
 public class LocalDateTimeRange {
+
     private LocalDateTime start;
     private LocalDateTime end;
 
@@ -29,14 +30,14 @@ public class LocalDateTimeRange {
     }
 
     public void setStart(LocalDateTime start) {
-        if(this.end != null && start.isAfter(this.end)) {
+        if (this.end != null && start.isAfter(this.end)) {
             throw new DateTimeException("Start date cannot be after the end date.");
         }
         this.start = start;
     }
 
     public void setEnd(LocalDateTime end) {
-        if(this.start != null && end.isBefore(this.start)) {
+        if (this.start != null && end.isBefore(this.start)) {
             throw new DateTimeException("End date cannot be before the start date.");
         }
         this.end = end;
