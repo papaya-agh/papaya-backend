@@ -22,6 +22,7 @@ import lombok.Setter;
 @Entity
 public class Sprint {
 
+    // TODO: use a base class for id column
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
