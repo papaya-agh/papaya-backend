@@ -3,6 +3,7 @@ package pl.edu.agh.model;
 import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +15,10 @@ import lombok.Setter;
 @Embeddable
 public class LocalDateTimeRange {
 
+    @Column(nullable = false)
     private LocalDateTime start;
+
+    @Column(nullable = false)
     private LocalDateTime end;
 
     public LocalDateTimeRange() {
@@ -31,14 +35,14 @@ public class LocalDateTimeRange {
 
     public void setEnd(LocalDateTime end) {
         if (end.isBefore(this.start)) {
-            throw new DateTimeException("End date cannot be before the start date.");
+            throw new DateTimeException("Start date cannot be after the end date.");
         }
         this.end = end;
     }
 
     public void set(LocalDateTime start, LocalDateTime end) {
         if (start.isBefore(end)) {
-            throw new DateTimeException("Invalid date range.");
+            throw new DateTimeException("Start date cannot be after the end date.");
         }
         this.start = start;
         this.end = end;

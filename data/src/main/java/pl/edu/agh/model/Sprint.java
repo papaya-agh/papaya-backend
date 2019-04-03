@@ -2,6 +2,7 @@ package pl.edu.agh.model;
 
 import java.time.Duration;
 import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -23,7 +24,8 @@ public class Sprint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @Column(nullable = false)
+    private Long id;
 
     // TODO: hook up reference
     @Transient
@@ -32,6 +34,7 @@ public class Sprint {
     private LocalDateTimeRange date;
     private LocalDateTimeRange enrollmentDate;
 
+    @Column(nullable = false)
     private boolean closed;
 
     private Duration timeWorked;
