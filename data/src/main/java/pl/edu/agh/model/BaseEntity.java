@@ -15,6 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @MappedSuperclass
 public class BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

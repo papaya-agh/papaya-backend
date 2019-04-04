@@ -5,7 +5,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,8 +16,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 public class UserInProject extends BaseEntity {
-    // TODO remove after Project entity is created
-    @Transient
+
+    @ManyToOne
     private Project project;
 
     @ManyToOne
