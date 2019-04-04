@@ -32,8 +32,8 @@ public class Sprint {
     @Transient
     private Project project;
 
-    private LocalDateTimeRange date;
-    private LocalDateTimeRange enrollmentDate;
+    private LocalDateTimePeriod durationPeriod;
+    private LocalDateTimePeriod enrollmentPeriod;
 
     @Column(nullable = false)
     private boolean closed;

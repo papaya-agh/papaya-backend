@@ -37,5 +37,5 @@ public class Availability {
 
     private Duration timeAvailable;
 
-    private Duration delayFromPreviousSprint;
+    private Duration pastSprintRemainingTime;
 }

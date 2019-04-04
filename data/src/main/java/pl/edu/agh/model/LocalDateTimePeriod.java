@@ -13,28 +13,28 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @Embeddable
-public class LocalDateTimeRange {
+public class LocalDateTimePeriod {
 
     @Column(nullable = false)
-    private LocalDateTime start;
+    private LocalDateTime begin;
 
     @Column(nullable = false)
     private LocalDateTime end;
 
-    public LocalDateTimeRange() {
-        this.start = LocalDateTime.now();
-        this.end = this.start;
+    public LocalDateTimePeriod() {
+        this.begin = LocalDateTime.now();
+        this.end = this.begin;
     }
 
-    public void setStart(LocalDateTime start) {
-        if (start.isAfter(this.end)) {
+    public void setBegin(LocalDateTime begin) {
+        if (begin.isAfter(this.end)) {
             throw new DateTimeException("Start date cannot be after the end date.");
         }
-        this.start = start;
+        this.begin = begin;
     }
 
     public void setEnd(LocalDateTime end) {
-        if (end.isBefore(this.start)) {
+        if (end.isBefore(this.begin)) {
             throw new DateTimeException("Start date cannot be after the end date.");
         }
         this.end = end;
@@ -44,13 +44,13 @@ public class LocalDateTimeRange {
         if (start.isBefore(end)) {
             throw new DateTimeException("Start date cannot be after the end date.");
         }
-        this.start = start;
+        this.begin = start;
         this.end = end;
     }
 
     public void extendToContain(LocalDateTime date) {
-        if (date.isBefore(this.start)) {
-            this.start = date;
+        if (date.isBefore(this.begin)) {
+            this.begin = date;
         } else if (date.isAfter(this.end)) {
             this.end = date;
         }
@@ -61,6 +61,6 @@ public class LocalDateTimeRange {
     }
 
     public Duration getDuration() {
-        return Duration.between(this.start, this.end);
+        return Duration.between(this.begin, this.end);
     }
 }
