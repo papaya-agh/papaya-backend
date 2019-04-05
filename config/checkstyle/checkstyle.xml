@@ -241,7 +241,6 @@
       <property name="forbiddenSummaryFragments"
         value="^@return the *|^This method returns |^A [{]@code [a-zA-Z0-9]+[}]( is a )" />
     </module>
-    <module name="JavadocParagraph" />
     <module name="AtclauseOrder">
       <property name="tagOrder" value="@param, @return, @throws, @deprecated" />
       <property name="target"
@@ -293,7 +292,6 @@
     <!--<module name="ExplicitInitialization"/>-->
     <module name="FallThrough" />
     <module name="FinalClass" />
-    <module name="FinalLocalVariable" />
     <module name="HiddenField">
       <property name="ignoreSetter" value="true" />
       <property name="ignoreConstructorParameter" value="true" />
@@ -317,7 +315,7 @@
     <module name="MethodCount">
       <property name="maxTotal" value="30" />
       <property name="maxPrivate" value="25" />
-      <property name="maxPackage" value="0" />
+      <property name="maxPackage" value="15" />
       <property name="maxProtected" value="15" />
       <property name="maxPublic"
         value="15" /> <!-- 2 * number of data class fields + 5 (hashCode, equals, toString, +2 extra)-->
