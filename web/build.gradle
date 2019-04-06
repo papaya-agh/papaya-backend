@@ -17,13 +17,17 @@ bootJar {
 }
 sourceCompatibility = '11'
 
-repositories { mavenCentral() }
+repositories { 
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-data-rest'
     compile project(':data')
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'com.github.papaya-agh:papaya-interface:master-SNAPSHOT'
 }
 
 configurations {
