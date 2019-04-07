@@ -17,6 +17,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "user_")
 public class User extends BaseEntity {
+
     @Column(length = 60)
     private String email;
 
