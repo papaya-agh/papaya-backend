@@ -1,10 +1,9 @@
-package pl.edu.agh.model;
+package pl.edu.agh.papaya.model;
 
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +22,7 @@ public class Project extends BaseEntity {
     @OneToMany(mappedBy = "project")
     private List<UserInProject> usersInProject;
 
-    @Transient //TODO add missing mapping
+    @OneToMany(mappedBy = "project")
     private List<Sprint> sprints;
 
     private String description;
