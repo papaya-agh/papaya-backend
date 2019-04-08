@@ -33,11 +33,19 @@ public class LocalDateTimePeriod {
         this.start = start;
     }
 
+    public LocalDateTime getStart() {
+        return start;
+    }
+
     public void setEnd(LocalDateTime end) {
         if (end.isBefore(this.start)) {
             throw new DateTimeException("Start date cannot be after the end date.");
         }
         this.end = end;
+    }
+
+    public LocalDateTime getEnd() {
+        return end;
     }
 
     public void set(LocalDateTime start, LocalDateTime end) {

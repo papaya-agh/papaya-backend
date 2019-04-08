@@ -6,6 +6,26 @@ buildscript {
 
 plugins {
     id "io.spring.dependency-management" version "1.0.5.RELEASE"
+    id 'checkstyle'
+    id 'pmd'
+    id 'com.github.spotbugs' version '1.7.1'
+}
+
+spotbugs {
+    effort = "max"
+    reportLevel = "medium"
+    includeFilter = file("config/spotbugs/exclude.xml")
+}
+
+tasks.withType(com.github.spotbugs.SpotBugsTask) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+pmd {
+    ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
 apply plugin: 'java'

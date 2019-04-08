@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    name="PAPAYA"
+    xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd
+http://pmd.sourceforge.net/ruleset/2.0.0 ">
+    <description>PAPAYA Ruleset</description>
+
+    <rule ref="rulesets/java/empty.xml"/>
+
+    <!-- Avoid general bad practices, e.g. empty `while` statements -->
+    <rule ref="rulesets/java/basic.xml"/>
+
+    <!-- Avoid redundant imports -->
+    <rule ref="rulesets/java/imports.xml"/>
+
+    <!-- Avoid entirely redundant things, such as unnecesary use of `this` -->
+    <rule ref="rulesets/java/unnecessary.xml">
+
+        <!-- Ignore unnecessary parentheses rule
+        Often redundant parentheses can make code easier to understand.
+        -->
+        <exclude name="UselessParentheses"/>
+
+    </rule>
+
+</ruleset>
