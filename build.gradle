@@ -1,0 +1,57 @@
+buildscript {
+    repositories { mavenCentral() }
+}
+
+plugins {
+    id 'checkstyle'
+    id 'pmd'
+    id 'com.github.spotbugs' version '1.7.1'
+    id 'codenarc'
+}
+
+subprojects {
+
+    repositories {
+        mavenCentral()
+    }
+
+    apply plugin: "checkstyle"
+    apply plugin: "pmd"
+    apply plugin: "com.github.spotbugs"
+    apply plugin: "codenarc"
+
+    tasks.withType(Pmd) {
+        reports {
+            xml.enabled = false
+            html.enabled = true
+        }
+    }
+
+    tasks.withType(Checkstyle) {
+        reports {
+            xml.enabled = false
+            html.enabled = true
+        }
+    }
+
+    tasks.withType(com.github.spotbugs.SpotBugsTask) {
+        reports {
+            xml.enabled = false
+            html.enabled = true
+        }
+    }
+
+    tasks.withType(CodeNarc) {
+        configFile = rootProject.file("config/codenarc/ruleset.groovy")
+    }
+
+    spotbugs {
+        effort = "max"
+        reportLevel = "medium"
+        includeFilter = rootProject.file("config/spotbugs/exclude.xml")
+    }
+
+    pmd {
+        ruleSetFiles = rootProject.files("config/pmd/ruleset.xml")
+    }
+}
