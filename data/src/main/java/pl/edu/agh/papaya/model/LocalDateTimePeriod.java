@@ -26,6 +26,10 @@ public class LocalDateTimePeriod {
         this.end = this.start;
     }
 
+    public LocalDateTime getStart() {
+        return start;
+    }
+
     public void setStart(LocalDateTime start) {
         if (start.isAfter(this.end)) {
             throw new DateTimeException("Start date cannot be after the end date.");
@@ -33,16 +37,21 @@ public class LocalDateTimePeriod {
         this.start = start;
     }
 
+    public LocalDateTime getEnd() {
+        return end;
+    }
+
     public void setEnd(LocalDateTime end) {
         if (end.isBefore(this.start)) {
-            throw new DateTimeException("Start date cannot be after the end date.");
+            throw new DateTimeException("End date cannot be before the start date.");
         }
         this.end = end;
     }
 
+    @SuppressWarnings("checkstyle:HiddenField")
     public void set(LocalDateTime start, LocalDateTime end) {
         if (end.isBefore(start)) {
-            throw new DateTimeException("Start date cannot be after the end date.");
+            throw new DateTimeException("Start date must be before the end date.");
         }
         this.start = start;
         this.end = end;
