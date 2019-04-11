@@ -3,10 +3,7 @@ buildscript {
 }
 
 plugins {
-    id 'checkstyle'
-    id 'pmd'
     id 'com.github.spotbugs' version '1.7.1'
-    id 'codenarc'
 }
 
 subprojects {
@@ -17,8 +14,13 @@ subprojects {
 
     apply plugin: "checkstyle"
     apply plugin: "pmd"
-    apply plugin: "com.github.spotbugs"
     apply plugin: "codenarc"
+
+    pmd {
+        toolVersion = "6.13.0"
+        ruleSetFiles = rootProject.files("config/pmd/ruleset.xml")
+        ruleSets = []
+    }
 
     tasks.withType(Pmd) {
         reports {
@@ -49,9 +51,5 @@ subprojects {
         effort = "max"
         reportLevel = "medium"
         includeFilter = rootProject.file("config/spotbugs/exclude.xml")
-    }
-
-    pmd {
-        ruleSetFiles = rootProject.files("config/pmd/ruleset.xml")
     }
 }
