@@ -1,8 +1,8 @@
 package pl.edu.agh.papaya.model;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -28,8 +28,7 @@ public class Sprint extends BaseEntity {
 
     private LocalDateTimePeriod enrollmentPeriod;
 
-    @Column(nullable = false)
-    private boolean closed;
+    private LocalDateTime dateClosed;
 
     private Duration timeBurned;
 

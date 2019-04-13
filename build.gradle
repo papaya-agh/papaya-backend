@@ -12,13 +12,23 @@ subprojects {
         mavenCentral()
     }
 
-    apply plugin: "checkstyle"
-    apply plugin: "pmd"
-    apply plugin: "codenarc"
+    apply plugin: 'checkstyle'
+    apply plugin: 'pmd'
+    apply plugin: 'codenarc'
+    apply plugin: 'java'
+    apply plugin: 'groovy'
 
+    dependencies {
+        compile 'org.codehaus.groovy:groovy-all:2.5.0'
+        compile 'org.spockframework:spock-core:1.3-groovy-2.5'
+        testCompile 'org.hamcrest:hamcrest-core:1.3' // only necessary if Hamcrest matchers are used
+        testRuntime 'net.bytebuddy:byte-buddy:1.8.21' // allows mocking of classes (in addition to interfaces)
+        testRuntime 'org.objenesis:objenesis:2.6'
+    }
+    
     pmd {
-        toolVersion = "6.13.0"
-        ruleSetFiles = rootProject.files("config/pmd/ruleset.xml")
+        toolVersion = '6.13.0'
+        ruleSetFiles = rootProject.files('config/pmd/ruleset.xml')
         ruleSets = []
     }
 
@@ -44,12 +54,12 @@ subprojects {
     }
 
     tasks.withType(CodeNarc) {
-        configFile = rootProject.file("config/codenarc/ruleset.groovy")
+        configFile = rootProject.file('config/codenarc/ruleset.groovy')
     }
 
     spotbugs {
-        effort = "max"
-        reportLevel = "medium"
-        includeFilter = rootProject.file("config/spotbugs/exclude.xml")
+        effort = 'max'
+        reportLevel = 'medium'
+        includeFilter = rootProject.file('config/spotbugs/exclude.xml')
     }
 }
