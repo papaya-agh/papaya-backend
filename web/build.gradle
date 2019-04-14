@@ -32,6 +32,8 @@ dependencies {
     compile 'com.google.guava:guava:27.1-jre'
     annotationProcessor 'org.immutables:value:2.7.5'
     implementation 'com.github.papaya-agh:papaya-interface:master-SNAPSHOT'
+    compile 'com.github.javafaker:javafaker:0.17.2'
+    compile 'javax.mail:mail:1.4.7'
 }
 
 configurations {
