@@ -1,0 +1,8 @@
+${AnsiColor.GREEN}  _____
+${AnsiColor.GREEN} |  __ \
+${AnsiColor.BRIGHT_GREEN} | |__) |_ _ _ __   __ _ _   _  __ _
+${AnsiColor.BRIGHT_YELLOW} |  ___/ _` | '_ \ / _` | | | |/ _` |
+${AnsiColor.YELLOW} | |  | (_| | |_) | (_| | |_| | (_| |
+${AnsiColor.BRIGHT_RED} |_|   \__,_| .__/ \__,_|\__, |\__,_|
+${AnsiColor.RED}            | |           __/ |
+${AnsiColor.RED}            |_|          |___/
