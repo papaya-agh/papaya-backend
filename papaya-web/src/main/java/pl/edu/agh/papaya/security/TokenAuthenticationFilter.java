@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.stereotype.Component;
+import pl.edu.agh.papaya.model.User;
+import pl.edu.agh.papaya.repository.UserRepository;
 
 @Component
 public class TokenAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -29,6 +31,9 @@ public class TokenAuthenticationFilter extends AbstractAuthenticationProcessingF
     private static final List<Pattern> UNSECURED_URLS = Arrays.asList(
             Pattern.compile("/login/?"),
             Pattern.compile("/h2(|/.*)"));
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private TokenRepository tokenRepository;
@@ -72,7 +77,11 @@ public class TokenAuthenticationFilter extends AbstractAuthenticationProcessingF
     }
 
     private Authentication createAuthentication(String token, UserDetails details) {
-        return new UsernamePasswordAuthenticationToken(details.getUsername(), token, details.getAuthorities());
+        User user = userRepository.findByEmail(details.getUsername())
+                .orElseThrow(() -> new BadCredentialsException("Invalid token, no user"));
+
+        UserPrincipal principal = new UserPrincipal(user);
+        return new UsernamePasswordAuthenticationToken(principal, token, details.getAuthorities());
     }
 
     private Optional<String> stripBearer(String auth) {
