@@ -38,11 +38,14 @@ public class ProjectService {
      * @return projects which the user is a part of
      */
     public List<Project> getUserProjects(String userId) {
+        long parsedUserId;
         try {
-            return projectRepository.findByUserId(Long.parseLong(userId));
+            parsedUserId = Long.parseLong(userId);
         } catch (NumberFormatException e) {
             return Collections.emptyList();
         }
+
+        return projectRepository.findByUserId(parsedUserId);
     }
 
     public boolean isUserInProject(Project project, String userId) {

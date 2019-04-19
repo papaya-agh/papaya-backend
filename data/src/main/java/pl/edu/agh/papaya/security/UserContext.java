@@ -9,16 +9,21 @@ import pl.edu.agh.papaya.model.User;
 public class UserContext {
 
     private UserPrincipal getPrincipal() {
-        return (UserPrincipal) getAuthentication()
-                .getPrincipal();
+        Object principal = getAuthentication().getPrincipal();
+
+        if (principal instanceof UserPrincipal) {
+            return (UserPrincipal) principal;
+        }
+
+        throw new UserNotAuthenticatedException("Invalid principal: " + principal + " (" + principal.getClass() + ")");
     }
 
     private Authentication getAuthentication() {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             throw new UserNotAuthenticatedException();
         }
+
         return authentication;
     }
 

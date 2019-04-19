@@ -39,9 +39,9 @@ public class ProjectCreationWizard {
         return projectService.createProject(project);
     }
 
-    private <T> T require(String name, T value) {
+    private <T> T require(String fieldName, T value) {
         if (value == null) {
-            throw new IllegalStateException(name + " is not initialized");
+            throw new IllegalStateException(fieldName + " is not initialized");
         }
         return value;
     }
