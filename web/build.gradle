@@ -28,7 +28,6 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-security'
     compile project(':data')
     testCompile 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'com.github.papaya-agh:papaya-interface:IO2019TEAM-68-SNAPSHOT'
     testCompile 'org.spockframework:spock-spring:1.3-groovy-2.5'
     compile 'com.google.guava:guava:27.1-jre'
     annotationProcessor 'org.immutables:value:2.7.5'
