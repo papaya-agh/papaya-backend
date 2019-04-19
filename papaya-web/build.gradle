@@ -17,7 +17,7 @@ bootJar {
 }
 sourceCompatibility = '11'
 
-repositories { 
+repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
 }

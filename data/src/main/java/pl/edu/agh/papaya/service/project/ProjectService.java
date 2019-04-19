@@ -46,7 +46,7 @@ public class ProjectService {
     }
 
     public boolean isUserInProject(Project project, String userId) {
-        return project.getUsersInProject()
+        return userInProjectRepository.findByProject(project)
                 .stream()
                 .map(UserInProject::getUser)
                 .map(User::getId)
