@@ -1,20 +1,13 @@
 package pl.edu.agh.papaya.mappers;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.papaya.api.model.ProjectDto;
 import pl.edu.agh.papaya.model.Project;
 
 @Component
-public class ProjectMapper {
+public class ProjectMapper implements Mapper<Project, ProjectDto> {
 
-    public List<ProjectDto> mapToApi(List<Project> projects) {
-        return projects.stream()
-                .map(this::mapToApi)
-                .collect(Collectors.toList());
-    }
-
+    @Override
     public ProjectDto mapToApi(Project modelProject) {
         return new ProjectDto()
                 .id(modelProject.getId())

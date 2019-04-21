@@ -50,7 +50,7 @@ class SprintServiceSpec extends Specification {
         and: 'created a new non-closed sprint'
         Sprint sprint = createSprint(false, project)
         and: 'added the sprint to the sprint repository'
-        sprintService.sprintRepository.save(sprint)
+        sprintRepository.save(sprint)
 
         when: 'the sprint service queries the sprint repository at a specified time to find all elements by their state'
         List<Sprint> sprints = sprintService.
@@ -89,7 +89,7 @@ class SprintServiceSpec extends Specification {
         and: 'created a new closed sprint'
         Sprint sprint = createSprint(true, project)
         and: 'added the sprint to the sprint repository'
-        sprintService.sprintRepository.save(sprint)
+        sprintRepository.save(sprint)
 
         when: 'the sprint service queries the sprint repository at a specified time to find all elements by their state'
         List<Sprint> sprints = sprintService.
@@ -130,7 +130,7 @@ class SprintServiceSpec extends Specification {
         and: 'sprints were created and saved to the sprint repository'
         sprints.each {
             Sprint sprint = createSprint(project, it[0], it[1], it[2], it[3], it[4])
-            sprintService.sprintRepository.save(sprint)
+            sprintRepository.save(sprint)
         }
 
         when: 'all sprint states are searched for'
@@ -171,37 +171,6 @@ class SprintServiceSpec extends Specification {
         [[100, 8, 9, 10, 14], [null, 8, 9, 10, 13]]    | [(SprintState.IN_PROGRESS): 2]
         [[5, 1, 2, 3, 4], [10, 1, 2, 3, 4]]            | [(SprintState.CLOSED): 2]
         [[null, 1, 2, 3, 4], [11, 1, 2, 3, 4]]         | [(SprintState.FINISHED): 2]
-    }
-
-    @Unroll
-    def "correctly finds all non closed sprints"(int numberOfSprints) {
-        setup: 'current time was set'
-        LocalDateTime currentTime = TestUtils.createUtcLocalDateTimeFromEpochSeconds(10)
-        and: 'a new project was created'
-        Project project = new Project()
-        and: 'the project was saved to the project repository'
-        projectRepository.save(project)
-        and: 'sprints were created and saved to the sprint repository'
-        numberOfSprints.times {
-            Sprint sprint = createSprint(project, null, it, it + 1, it + 2, it + 3)
-            sprintService.sprintRepository.save(sprint)
-        }
-
-        when: 'all sprint states are searched for'
-        List<Sprint> sprints = sprintService.findNotClosed(currentTime)
-
-        then: 'the number of sprints with each state will match the expected number'
-        sprints.size() == numberOfSprints
-        sprints.every {
-            it.getSprintState(currentTime) != SprintState.CLOSED
-        }
-
-        cleanup:
-        sprintRepository.deleteAll()
-        projectRepository.deleteAll()
-
-        where:
-        numberOfSprints << [1, 5, 10, 1000]
     }
 
     def createSprint(boolean closed, Project project = null) {
