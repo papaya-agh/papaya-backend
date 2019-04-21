@@ -1,9 +1,11 @@
 buildscript {
-    repositories { mavenCentral() }
-}
-
-plugins {
-    id 'com.github.spotbugs' version '1.7.1'
+    repositories {
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath 'gradle.plugin.com.github.spotbugs:spotbugs-gradle-plugin:1.7.1'
+    }
 }
 
 subprojects {
@@ -17,6 +19,7 @@ subprojects {
     apply plugin: 'codenarc'
     apply plugin: 'java'
     apply plugin: 'groovy'
+    apply plugin: 'com.github.spotbugs'
 
     dependencies {
         compile 'org.codehaus.groovy:groovy-all:2.5.0'
@@ -25,7 +28,7 @@ subprojects {
         testRuntime 'net.bytebuddy:byte-buddy:1.8.21' // allows mocking of classes (in addition to interfaces)
         testRuntime 'org.objenesis:objenesis:2.6'
     }
-    
+
     pmd {
         toolVersion = '6.13.0'
         ruleSetFiles = rootProject.files('config/pmd/ruleset.xml')
@@ -60,6 +63,6 @@ subprojects {
     spotbugs {
         effort = 'max'
         reportLevel = 'medium'
-        includeFilter = rootProject.file('config/spotbugs/exclude.xml')
+        excludeFilter = file("${project.rootDir}/config/spotbugs/exclude.xml")
     }
 }
