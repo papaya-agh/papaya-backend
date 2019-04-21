@@ -28,3 +28,7 @@ configurations.all {
         force "org.codehaus.groovy:groovy-xml:${groovyVersion}"
     }
 }
+
+// disable checks
+[checkstyleTest, pmdTest, codenarcTest, spotbugsTest]
+        .each { it.enabled = false }
