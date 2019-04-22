@@ -23,7 +23,6 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     compile 'com.h2database:h2'
     compile 'org.postgresql:postgresql:42.2.5'
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
 }
 
 dependencyManagement {

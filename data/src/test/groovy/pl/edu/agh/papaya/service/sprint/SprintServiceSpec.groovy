@@ -1,18 +1,28 @@
-package pl.edu.agh.papaya.rest.sprint.service
+package pl.edu.agh.papaya.service.sprint
 
 import java.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import pl.edu.agh.papaya.TestUtils
-import pl.edu.agh.papaya.api.model.SprintState
 import pl.edu.agh.papaya.model.Project
 import pl.edu.agh.papaya.model.Sprint
+import pl.edu.agh.papaya.model.SprintState
 import pl.edu.agh.papaya.repository.ProjectRepository
 import pl.edu.agh.papaya.repository.SprintRepository
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@SpringBootTest
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
+@EntityScan('pl.edu.agh.papaya.model')
+@EnableJpaRepositories('pl.edu.agh.papaya.repository')
+@SpringBootTest(classes = [SprintService])
 class SprintServiceSpec extends Specification {
 
     private static final int ENROLLMENT_START = 100
@@ -29,60 +39,6 @@ class SprintServiceSpec extends Specification {
 
     @Autowired
     private ProjectRepository projectRepository
-
-    @Unroll
-    def "correctly evaluates the state of a sprint without a dateClosed set (#expectedState)"(int currentTime,
-            SprintState expectedState) {
-        given: 'a non-closed sprint was created'
-        Sprint sprint = createSprint(false)
-
-        when: 'the sprint state is evaluated at a specified time'
-        SprintState sprintState = SprintService.
-                getSprintState(sprint, TestUtils.createUtcLocalDateTimeFromEpochSeconds(currentTime))
-
-        then: 'the obtained state matches the expected state'
-        sprintState == expectedState
-
-        where:
-        currentTime | expectedState
-        0           | SprintState.UPCOMING
-        100         | SprintState.DECLARABLE
-        150         | SprintState.DECLARABLE
-        200         | SprintState.PADDING
-        250         | SprintState.PADDING
-        300         | SprintState.IN_PROGRESS
-        350         | SprintState.IN_PROGRESS
-        400         | SprintState.FINISHED
-        500         | SprintState.FINISHED
-        550         | SprintState.FINISHED
-    }
-
-    @Unroll
-    def "correctly evaluates the state (#expectedState) of a sprint whose dateClosed has been set"(int currentTime,
-            SprintState expectedState) {
-        given: 'a closed sprint was created'
-        Sprint sprint = createSprint(true)
-
-        when: 'the sprint state is evaluated at a specified time'
-        SprintState sprintState = SprintService.
-                getSprintState(sprint, TestUtils.createUtcLocalDateTimeFromEpochSeconds(currentTime))
-
-        then: 'the obtained state matches the expected state'
-        sprintState == expectedState
-
-        where:
-        currentTime | expectedState
-        0           | SprintState.UPCOMING
-        100         | SprintState.DECLARABLE
-        150         | SprintState.DECLARABLE
-        200         | SprintState.PADDING
-        250         | SprintState.PADDING
-        300         | SprintState.IN_PROGRESS
-        350         | SprintState.IN_PROGRESS
-        400         | SprintState.FINISHED
-        500         | SprintState.CLOSED
-        550         | SprintState.CLOSED
-    }
 
     @Unroll
     def "correctly fetches one sprint without a closing date from the repository"(int currentTime,
@@ -237,7 +193,7 @@ class SprintServiceSpec extends Specification {
         then: 'the number of sprints with each state will match the expected number'
         sprints.size() == numberOfSprints
         sprints.every {
-            SprintService.getSprintState(it, currentTime) != SprintState.CLOSED
+            it.getSprintState(currentTime) != SprintState.CLOSED
         }
 
         cleanup:

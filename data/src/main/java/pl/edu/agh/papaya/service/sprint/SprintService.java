@@ -1,12 +1,12 @@
-package pl.edu.agh.papaya.rest.sprint.service;
+package pl.edu.agh.papaya.service.sprint;
 
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.papaya.api.model.SprintState;
 import pl.edu.agh.papaya.model.Sprint;
+import pl.edu.agh.papaya.model.SprintState;
 import pl.edu.agh.papaya.repository.SprintRepository;
 
 @Service
@@ -27,26 +27,6 @@ public class SprintService {
         sprintStateQueries.put(SprintState.IN_PROGRESS, sprintRepository::findInProgress);
         sprintStateQueries.put(SprintState.FINISHED, sprintRepository::findFinished);
         sprintStateQueries.put(SprintState.CLOSED, sprintRepository::findClosed);
-    }
-
-    public static SprintState getSprintState(Sprint sprint) {
-        return getSprintState(sprint, LocalDateTime.now());
-    }
-
-    public static SprintState getSprintState(Sprint sprint, LocalDateTime evaluationTime) {
-        var sprintState = SprintState.CLOSED;
-        if (evaluationTime.isBefore(sprint.getEnrollmentPeriod().getStart())) {
-            sprintState = SprintState.UPCOMING;
-        } else if (evaluationTime.isBefore(sprint.getEnrollmentPeriod().getEnd())) {
-            sprintState = SprintState.DECLARABLE;
-        } else if (evaluationTime.isBefore(sprint.getDurationPeriod().getStart())) {
-            sprintState = SprintState.PADDING;
-        } else if (evaluationTime.isBefore(sprint.getDurationPeriod().getEnd())) {
-            sprintState = SprintState.IN_PROGRESS;
-        } else if (sprint.getDateClosed() == null || evaluationTime.isBefore(sprint.getDateClosed())) {
-            sprintState = SprintState.FINISHED;
-        }
-        return sprintState;
     }
 
     public List<Sprint> findByState(SprintState sprintState) {

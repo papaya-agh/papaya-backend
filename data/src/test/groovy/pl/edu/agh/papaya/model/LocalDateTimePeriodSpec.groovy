@@ -4,6 +4,7 @@ import java.time.DateTimeException
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import pl.edu.agh.papaya.TestUtils
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -16,8 +17,8 @@ class LocalDateTimePeriodSpec extends Specification {
         LocalDateTimePeriod localDateTimePeriod = new LocalDateTimePeriod()
 
         when: 'start and end are set'
-        LocalDateTime start = createUtcLocalDateTimeFromEpochSeconds(startSeconds)
-        LocalDateTime end = createUtcLocalDateTimeFromEpochSeconds(endSeconds)
+        LocalDateTime start = TestUtils.createUtcLocalDateTimeFromEpochSeconds(startSeconds)
+        LocalDateTime end = TestUtils.createUtcLocalDateTimeFromEpochSeconds(endSeconds)
         localDateTimePeriod.set(start, end)
 
         then: 'the local date time period duration will be equal to the difference between start and end'
@@ -35,9 +36,9 @@ class LocalDateTimePeriodSpec extends Specification {
         final LocalDateTimePeriod localDateTimePeriod = new LocalDateTimePeriod()
 
         when: 'start is set to 100 s'
-        localDateTimePeriod.start = createUtcLocalDateTimeFromEpochSeconds(100)
+        localDateTimePeriod.start = TestUtils.createUtcLocalDateTimeFromEpochSeconds(100)
         and: 'end is set to 0 s'
-        localDateTimePeriod.end = createUtcLocalDateTimeFromEpochSeconds(0)
+        localDateTimePeriod.end = TestUtils.createUtcLocalDateTimeFromEpochSeconds(0)
 
         then: 'a date time exception will be thrown'
         thrown DateTimeException
@@ -48,9 +49,9 @@ class LocalDateTimePeriodSpec extends Specification {
         LocalDateTimePeriod localDateTimePeriod = new LocalDateTimePeriod()
 
         when: 'end is set to 0 s'
-        localDateTimePeriod.end = createUtcLocalDateTimeFromEpochSeconds(0)
+        localDateTimePeriod.end = TestUtils.createUtcLocalDateTimeFromEpochSeconds(0)
         and: 'start is set to 100 s'
-        localDateTimePeriod.start = createUtcLocalDateTimeFromEpochSeconds(100)
+        localDateTimePeriod.start = TestUtils.createUtcLocalDateTimeFromEpochSeconds(100)
 
         then: 'a date time exception will be thrown'
         thrown DateTimeException
@@ -62,12 +63,12 @@ class LocalDateTimePeriodSpec extends Specification {
         given: 'local date time period was created'
         LocalDateTimePeriod localDateTimePeriod = new LocalDateTimePeriod()
         and: 'start and end were set'
-        LocalDateTime start = createUtcLocalDateTimeFromEpochSeconds(startSeconds)
-        LocalDateTime end = createUtcLocalDateTimeFromEpochSeconds(endSeconds)
+        LocalDateTime start = TestUtils.createUtcLocalDateTimeFromEpochSeconds(startSeconds)
+        LocalDateTime end = TestUtils.createUtcLocalDateTimeFromEpochSeconds(endSeconds)
         localDateTimePeriod.set(start, end)
 
         when: 'the time period is extended to contain a new date'
-        LocalDateTime extension = createUtcLocalDateTimeFromEpochSeconds(extensionSeconds)
+        LocalDateTime extension = TestUtils.createUtcLocalDateTimeFromEpochSeconds(extensionSeconds)
         localDateTimePeriod.extendToContain(extension)
 
         then: 'the local date time will be extended to include the new date'
@@ -91,8 +92,8 @@ class LocalDateTimePeriodSpec extends Specification {
         given: 'local date time period was created'
         LocalDateTimePeriod localDateTimePeriod = new LocalDateTimePeriod()
         and: 'start and end were set'
-        LocalDateTime start = createUtcLocalDateTimeFromEpochSeconds(startSeconds)
-        LocalDateTime end = createUtcLocalDateTimeFromEpochSeconds(endSeconds)
+        LocalDateTime start = TestUtils.createUtcLocalDateTimeFromEpochSeconds(startSeconds)
+        LocalDateTime end = TestUtils.createUtcLocalDateTimeFromEpochSeconds(endSeconds)
         localDateTimePeriod.set(start, end)
 
         when: 'the time period is extended'
@@ -110,9 +111,5 @@ class LocalDateTimePeriodSpec extends Specification {
         0            | 0          | 0
         100          | 100        | 0
         100          | 100        | 100
-    }
-
-    private static LocalDateTime createUtcLocalDateTimeFromEpochSeconds(int seconds) {
-        LocalDateTime.ofEpochSecond(seconds, 0, ZoneOffset.UTC)
     }
 }
