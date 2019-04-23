@@ -39,4 +39,24 @@ public class Sprint extends BaseEntity {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint")
     private List<Notification> notifications;
+
+    public SprintState getSprintState() {
+        return getSprintState(LocalDateTime.now());
+    }
+
+    public SprintState getSprintState(LocalDateTime evaluationTime) {
+        var sprintState = SprintState.CLOSED;
+        if (evaluationTime.isBefore(enrollmentPeriod.getStart())) {
+            sprintState = SprintState.UPCOMING;
+        } else if (evaluationTime.isBefore(enrollmentPeriod.getEnd())) {
+            sprintState = SprintState.DECLARABLE;
+        } else if (evaluationTime.isBefore(durationPeriod.getStart())) {
+            sprintState = SprintState.PADDING;
+        } else if (evaluationTime.isBefore(durationPeriod.getEnd())) {
+            sprintState = SprintState.IN_PROGRESS;
+        } else if (dateClosed == null || evaluationTime.isBefore(dateClosed)) {
+            sprintState = SprintState.FINISHED;
+        }
+        return sprintState;
+    }
 }
