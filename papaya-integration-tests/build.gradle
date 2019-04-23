@@ -6,7 +6,7 @@ plugins {
 sourceCompatibility = '11'
 
 dependencies {
-    testCompile project(':web').sourceSets.main.runtimeClasspath
+    testCompile project(':papaya-web').sourceSets.main.runtimeClasspath
     testCompile 'junit:junit:4.12'
     testCompile 'org.concordion:concordion:2.2.0'
     testCompile 'org.springframework:spring-test:5.1.5.RELEASE'
