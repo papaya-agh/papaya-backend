@@ -1,6 +1,6 @@
 rootProject.name = 'papaya-backend'
 
-include 'data'
-include 'web'
+include 'papaya-core'
+include 'papaya-web'
 
 startParameter.continueOnFailure = true

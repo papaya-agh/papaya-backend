@@ -28,7 +28,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-data-rest'
     compile 'org.springframework.boot:spring-boot-starter-security'
-    compile project(':data')
+    compile project(':papaya-core')
     compile 'com.google.guava:guava:27.1-jre'
     annotationProcessor 'org.immutables:value:2.7.5'
     implementation group: 'com.github.papaya-agh', name: 'papaya-interface', version: 'master-SNAPSHOT',
