@@ -41,6 +41,7 @@ subprojects {
         reports {
             xml.enabled = false
             html.enabled = true
+            consoleOutput = true
         }
     }
 
@@ -62,9 +63,14 @@ subprojects {
         configFile = rootProject.file('config/codenarc/ruleset.groovy')
     }
 
+    checkstyle {
+        maxWarnings = 0
+        maxErrors = 0
+    }
+
     spotbugs {
         effort = 'max'
-        reportLevel = 'medium'
+        reportLevel = 'low'
         excludeFilter = rootProject.file('config/spotbugs/exclude.xml')
     }
 }

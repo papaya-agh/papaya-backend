@@ -1,0 +1,11 @@
+language: java
+jdk:
+  - openjdk11
+
+script:
+  - ./gradlew clean check
+
+branches:
+  only:
+    - master
+    - /^IO2019TEAM-.*$/
