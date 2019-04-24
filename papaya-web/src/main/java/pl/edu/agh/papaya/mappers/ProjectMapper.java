@@ -9,17 +9,17 @@ import pl.edu.agh.papaya.model.Project;
 @Component
 public class ProjectMapper {
 
+    public List<ProjectDto> mapToApi(List<Project> projects) {
+        return projects.stream()
+                .map(this::mapToApi)
+                .collect(Collectors.toList());
+    }
+
     public ProjectDto mapToApi(Project modelProject) {
         return new ProjectDto()
                 .id(modelProject.getId())
                 .description(modelProject.getDescription())
                 .initialCoefficient(modelProject.getInitialCoefficient())
                 .name(modelProject.getName());
-    }
-
-    public List<ProjectDto> mapToApi(List<Project> projects) {
-        return projects.stream()
-                .map(this::mapToApi)
-                .collect(Collectors.toList());
     }
 }

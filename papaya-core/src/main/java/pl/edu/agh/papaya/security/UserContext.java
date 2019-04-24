@@ -8,6 +8,14 @@ import pl.edu.agh.papaya.model.User;
 @Component
 public class UserContext {
 
+    public String getUserId() {
+        return getUser().getId().toString();
+    }
+
+    public User getUser() {
+        return getPrincipal().getUser();
+    }
+
     private UserPrincipal getPrincipal() {
         Object principal = getAuthentication().getPrincipal();
 
@@ -25,13 +33,5 @@ public class UserContext {
         }
 
         return authentication;
-    }
-
-    public User getUser() {
-        return getPrincipal().getUser();
-    }
-
-    public String getUserId() {
-        return getUser().getId().toString();
     }
 }

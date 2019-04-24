@@ -23,11 +23,6 @@ public class ClientApiProvider {
         return new LoginApi(getApiClient());
     }
 
-    @Bean
-    public ProjectsApi projectsApi() {
-        return new ProjectsApi(getApiClient());
-    }
-
     public ApiClient getApiClient() {
         if (apiClient == null) {
             apiClient = new ApiClient()
@@ -35,5 +30,10 @@ public class ClientApiProvider {
         }
 
         return apiClient;
+    }
+
+    @Bean
+    public ProjectsApi projectsApi() {
+        return new ProjectsApi(getApiClient());
     }
 }

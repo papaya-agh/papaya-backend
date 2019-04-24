@@ -28,6 +28,22 @@ public class TestUsersManager {
 
     private boolean initialized;
 
+    public String switchUser(String username) throws ApiException {
+        initialize();
+
+        User testUser = testUsers.get(username);
+        if (testUser == null) {
+            throw new IllegalArgumentException("Invalid user: " + username);
+        }
+
+        LoginResult loginResult = loginApi.requestLogin(new LoginRequest()
+                .username(testUser.getEmail()));
+
+        clientApiProvider.getApiClient()
+                .addDefaultHeader("Authorization", "Bearer " + loginResult.getToken());
+        return getFullName(testUser);
+    }
+
     @PostConstruct
     public void initialize() {
         if (initialized) {
@@ -48,22 +64,6 @@ public class TestUsersManager {
         testUser.setLastName(lastName);
         userRepository.save(testUser);
         testUsers.put(username, testUser);
-    }
-
-    public String switchUser(String username) throws ApiException {
-        initialize();
-
-        User testUser = testUsers.get(username);
-        if (testUser == null) {
-            throw new IllegalArgumentException("Invalid user: " + username);
-        }
-
-        LoginResult loginResult = loginApi.requestLogin(new LoginRequest()
-                .username(testUser.getEmail()));
-
-        clientApiProvider.getApiClient()
-                .addDefaultHeader("Authorization", "Bearer " + loginResult.getToken());
-        return getFullName(testUser);
     }
 
     private String getFullName(User user) {
