@@ -5,22 +5,31 @@ import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
 import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.api.model.SprintStateDto;
+import pl.edu.agh.papaya.api.model.UserInProjectDto;
 import pl.edu.agh.papaya.mappers.AvailabilityMapper;
 import pl.edu.agh.papaya.mappers.ProjectMapper;
+import pl.edu.agh.papaya.mappers.UserInProjectMapper;
+import pl.edu.agh.papaya.mappers.UserRoleMapper;
 import pl.edu.agh.papaya.model.Availability;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
+import pl.edu.agh.papaya.model.User;
+import pl.edu.agh.papaya.model.UserInProject;
+import pl.edu.agh.papaya.model.UserRole;
 import pl.edu.agh.papaya.security.UserContext;
+import pl.edu.agh.papaya.security.UserNotAuthorizedException;
 import pl.edu.agh.papaya.service.availability.AvailabilityService;
 import pl.edu.agh.papaya.service.project.ProjectService;
 import pl.edu.agh.papaya.service.sprint.SprintService;
+import pl.edu.agh.papaya.util.BadRequestException;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
 import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
@@ -38,9 +47,17 @@ public class ProjectsRestService {
 
     private final ProjectMapper projectMapper;
 
+    private final UserService userService;
+
+    private final ProjectService projectService;
+
     private final AvailabilityService availabilityService;
 
     private final AvailabilityMapper availabilityMapper;
+
+    private final UserRoleMapper userRoleMapper;
+
+    private final UserInProjectMapper userInProjectMapper;
 
     public ResponseEntity<ProjectDto> addProject(ProjectDto projectDto) {
         Project created = projectService.newProject()
@@ -49,6 +66,24 @@ public class ProjectsRestService {
                 .withInitialCoefficient(projectDto.getInitialCoefficient())
                 .create();
         return ResponseEntity.ok(projectMapper.mapToApi(created));
+    }
+
+    public ResponseEntity<Void> addUserToProject(UserInProjectDto userInProject, Long projectId) {
+        User user = userService.getUserById(userInProject.getUserId())
+                .orElseThrow(BadRequestException::new);
+
+        Project project = projectService.getProjectById(projectId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        UserRole role = userRoleMapper.mapFromApi(userInProject.getRole());
+
+        try {
+            projectService.setUserRole(project, user, role);
+        } catch (UserNotAuthorizedException e) {
+            throw new ForbiddenAccessException(e);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     public ResponseEntity<ProjectDto> getProjectById(Long id) {
@@ -70,6 +105,58 @@ public class ProjectsRestService {
     public ResponseEntity<List<ProjectDto>> getProjects() {
         List<Project> projects = projectService.getUserProjects(userContext.getUserId());
         return ResponseEntity.ok(projectMapper.mapToApi(projects));
+    }
+
+    public ResponseEntity<List<UserInProjectDto>> getUsersFromProject(Long projectId) {
+        Project project = projectService.getProjectById(projectId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        List<UserInProject> usersInProject = projectService.getUsersInProject(project);
+
+        List<UserInProjectDto> usersInProjectDto = usersInProject.stream()
+                .map(userInProjectMapper::mapToApi)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(usersInProjectDto);
+    }
+
+    public ResponseEntity<Void> removeUser(Long projectId, String userId) {
+        User user = userService.getUserById(userId)
+                .orElseThrow(BadRequestException::new);
+
+        Project project = projectService.getProjectById(projectId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        try {
+            projectService.removeUser(project, user);
+        } catch (UserNotAuthorizedException e) {
+            throw new ForbiddenAccessException(e);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    public ResponseEntity<UserInProjectDto> setUserRole(UserInProjectDto userInProject, Long projectId, String userId) {
+        if (userInProject.getUserId() != null && !userInProject.getUserId().equals(userId)) {
+            throw new BadRequestException();
+        }
+
+        User user = userService.getUserById(userId)
+                .orElseThrow(BadRequestException::new);
+
+        Project project = projectService.getProjectById(projectId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        UserRole role = userRoleMapper.mapFromApi(userInProject.getRole());
+
+        try {
+            projectService.setUserRole(project, user, role);
+        } catch (UserNotAuthorizedException e) {
+            throw new ForbiddenAccessException(e);
+        }
+
+        return ResponseEntity.ok(new UserInProjectDto()
+                .userId(userId)
+                .role(userInProject.getRole()));
     }
 
     public ResponseEntity<List<SprintDto>> getSprints(Long projectId, @Valid List<SprintStateDto> sprintStateDtos) {

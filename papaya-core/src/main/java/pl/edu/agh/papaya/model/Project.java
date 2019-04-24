@@ -28,4 +28,13 @@ public class Project extends BaseEntity {
     private String description;
 
     private double initialCoefficient;
+
+    public boolean hasRole(User user, UserRole role) {
+        return usersInProject.stream()
+                .filter(up -> up.getUser().equals(user))
+                .findAny()
+                .map(UserInProject::getUserRole)
+                .map(role::equals)
+                .orElse(false);
+    }
 }

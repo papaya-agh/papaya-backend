@@ -12,6 +12,7 @@ import pl.edu.agh.papaya.model.UserRole;
 import pl.edu.agh.papaya.repository.ProjectRepository;
 import pl.edu.agh.papaya.repository.UserInProjectRepository;
 import pl.edu.agh.papaya.security.UserContext;
+import pl.edu.agh.papaya.security.UserNotAuthorizedException;
 
 @Service
 public class ProjectService {
@@ -83,5 +84,26 @@ public class ProjectService {
         projectRepository.save(project);
         userInProjectRepository.save(userInProject);
         return project;
+    }
+
+    public void setUserRole(Project project, User user, UserRole role) {
+        if (!project.hasRole(userContext.getUser(), UserRole.ADMIN)) {
+            throw new UserNotAuthorizedException();
+        }
+
+        UserInProject userInProject = new UserInProject(project, user, role);
+        userInProjectRepository.save(userInProject);
+    }
+
+    public List<UserInProject> getUsersInProject(Project project) {
+        return userInProjectRepository.findByProject(project);
+    }
+
+    public void removeUser(Project project, User user) {
+        if (!project.hasRole(userContext.getUser(), UserRole.ADMIN)) {
+            throw new UserNotAuthorizedException();
+        }
+
+        userInProjectRepository.removeUserFromProject(project, user);
     }
 }
