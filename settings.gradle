@@ -2,5 +2,6 @@ rootProject.name = 'papaya-backend'
 
 include 'papaya-core'
 include 'papaya-web'
+include 'papaya-integration-tests'
 
 startParameter.continueOnFailure = true

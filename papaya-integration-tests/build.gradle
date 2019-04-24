@@ -1,0 +1,34 @@
+plugins {
+    id 'io.spring.dependency-management' version '1.0.5.RELEASE'
+    id 'java'
+}
+
+sourceCompatibility = '11'
+
+dependencies {
+    testCompile project(':papaya-web').sourceSets.main.runtimeClasspath
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.concordion:concordion:2.2.0'
+    testCompile 'org.springframework:spring-test:5.1.5.RELEASE'
+    testCompile 'org.springframework.boot:spring-boot-test:2.1.3.RELEASE'
+}
+
+ext.groovyVersion = '2.5.6'
+
+configurations.all {
+    resolutionStrategy {
+        // there are conflicting Groovy versions
+        force "org.codehaus.groovy:groovy-all:${groovyVersion}"
+        force "org.codehaus.groovy:groovy-datetime:${groovyVersion}"
+        force "org.codehaus.groovy:groovy-jsr223:${groovyVersion}"
+        force "org.codehaus.groovy:groovy-swing:${groovyVersion}"
+        force "org.codehaus.groovy:groovy-nio:${groovyVersion}"
+        force "org.codehaus.groovy:groovy-macro:${groovyVersion}"
+        force "org.codehaus.groovy:groovy-sql:${groovyVersion}"
+        force "org.codehaus.groovy:groovy-xml:${groovyVersion}"
+    }
+}
+
+// disable checks
+[checkstyleTest, pmdTest, codenarcTest, spotbugsTest]
+        .each { it.enabled = false }

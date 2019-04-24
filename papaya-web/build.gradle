@@ -17,7 +17,7 @@ bootJar {
 }
 sourceCompatibility = '11'
 
-repositories { 
+repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
 }
@@ -33,6 +33,7 @@ dependencies {
     annotationProcessor 'org.immutables:value:2.7.5'
     implementation group: 'com.github.papaya-agh', name: 'papaya-interface', version: 'master-SNAPSHOT',
             changing: true
+    annotationProcessor 'org.projectlombok:lombok'
     compile 'com.github.javafaker:javafaker:0.17.2'
     compile 'javax.mail:mail:1.4.7'
 }
