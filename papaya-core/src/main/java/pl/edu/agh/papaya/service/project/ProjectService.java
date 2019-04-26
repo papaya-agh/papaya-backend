@@ -104,6 +104,6 @@ public class ProjectService {
             throw new UserNotAuthorizedException();
         }
 
-        userInProjectRepository.removeUserFromProject(project, user);
+        userInProjectRepository.updateUserRole(project, user, UserRole.INACTIVE);
     }
 }

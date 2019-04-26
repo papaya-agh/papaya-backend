@@ -3,6 +3,7 @@ package pl.edu.agh.papaya.rest.projects.service;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
-import pl.edu.agh.papaya.api.model.SprintDto;
-import pl.edu.agh.papaya.api.model.SprintStateDto;
 import pl.edu.agh.papaya.api.model.UserInProjectDto;
 import pl.edu.agh.papaya.mappers.AvailabilityMapper;
 import pl.edu.agh.papaya.mappers.ProjectMapper;
@@ -24,16 +23,19 @@ import pl.edu.agh.papaya.model.SprintState;
 import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.model.UserRole;
+import pl.edu.agh.papaya.rest.projects.service.SprintsRestService;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.security.UserNotAuthorizedException;
 import pl.edu.agh.papaya.service.availability.AvailabilityService;
 import pl.edu.agh.papaya.service.project.ProjectService;
 import pl.edu.agh.papaya.service.sprint.SprintService;
+import pl.edu.agh.papaya.service.user.UserService;
 import pl.edu.agh.papaya.util.BadRequestException;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
 import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
 @Service
+@SuppressWarnings("checkstyle:ClassFanOutComplexity") // TODO refactor
 @RequiredArgsConstructor
 public class ProjectsRestService {
 
@@ -48,8 +50,6 @@ public class ProjectsRestService {
     private final ProjectMapper projectMapper;
 
     private final UserService userService;
-
-    private final ProjectService projectService;
 
     private final AvailabilityService availabilityService;
 
@@ -92,13 +92,14 @@ public class ProjectsRestService {
         return ResponseEntity.ok(projectMapper.mapToApi(project));
     }
 
-    private Project getValidProject(Long id) {
+    public Project getValidProject(Long id) {
         Project project = projectService.getProjectById(id)
                 .orElseThrow(ResourceNotFoundException::new);
 
         if (!projectService.isUserInProject(project, userContext.getUserId())) {
             throw new ForbiddenAccessException();
         }
+
         return project;
     }
 
