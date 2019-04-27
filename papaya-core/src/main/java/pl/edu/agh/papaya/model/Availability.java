@@ -27,4 +27,6 @@ public class Availability extends BaseEntity {
     private Duration timeAvailable;
 
     private Duration pastSprintRemainingTime;
+
+    private String notes;
 }

@@ -12,6 +12,10 @@ public class UserContext {
         return getUser().getId().toString();
     }
 
+    public Long getUserIdn() {
+        return getUser().getId();
+    }
+
     public User getUser() {
         return getPrincipal().getUser();
     }

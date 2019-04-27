@@ -3,6 +3,7 @@ package pl.edu.agh.papaya.service.sprint;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,11 @@ public class SprintService {
 
     private final EnumMap<SprintState, SprintStateQuery> sprintStateQueries = new EnumMap<>(SprintState.class);
 
+    private final SprintRepository sprintRepository;
+
     @Autowired
     public SprintService(SprintRepository sprintRepository) {
+        this.sprintRepository = sprintRepository;
         sprintStateQueries.put(SprintState.UPCOMING, sprintRepository::findUpcoming);
         sprintStateQueries.put(SprintState.DECLARABLE, sprintRepository::findDeclarable);
         sprintStateQueries.put(SprintState.PADDING, sprintRepository::findPadding);
@@ -26,46 +30,50 @@ public class SprintService {
         sprintStateQueries.put(SprintState.CLOSED, sprintRepository::findClosed);
     }
 
-    public List<Sprint> findByState(SprintState sprintState) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        return findByState(sprintState, currentTime);
+    public Optional<Sprint> getById(Long id) {
+        return sprintRepository.findById(id);
     }
 
-    public List<Sprint> findByState(SprintState sprintState, LocalDateTime evaluationTime) {
+    public List<Sprint> getByState(SprintState sprintState) {
+        LocalDateTime currentTime = LocalDateTime.now();
+        return getByState(sprintState, currentTime);
+    }
+
+    public List<Sprint> getByState(SprintState sprintState, LocalDateTime evaluationTime) {
         return sprintStateQueries.get(sprintState).querySprints(evaluationTime);
     }
 
-    public List<Sprint> findByStateInProject(SprintState sprintState, Long projectId) {
+    public List<Sprint> getByStateInProject(SprintState sprintState, Long projectId) {
         LocalDateTime currentTime = LocalDateTime.now();
-        return findByStateInProject(sprintState, projectId, currentTime);
+        return getByStateInProject(sprintState, projectId, currentTime);
     }
 
-    public List<Sprint> findByStateInProject(SprintState sprintState, Long projectId, LocalDateTime evaluationTime) {
-        return findByState(sprintState, evaluationTime)
+    public List<Sprint> getByStateInProject(SprintState sprintState, Long projectId, LocalDateTime evaluationTime) {
+        return getByState(sprintState, evaluationTime)
                 .stream()
                 .filter(sprint -> sprint.getProject().getId().equals(projectId))
                 .collect(Collectors.toList());
     }
 
-    public List<Sprint> findByStates(List<SprintState> sprintStates) {
+    public List<Sprint> getByStates(List<SprintState> sprintStates) {
         LocalDateTime currentTime = LocalDateTime.now();
-        return findByStates(sprintStates, currentTime);
+        return getByStates(sprintStates, currentTime);
     }
 
-    public List<Sprint> findByStates(List<SprintState> sprintStates, LocalDateTime evaluationTime) {
+    public List<Sprint> getByStates(List<SprintState> sprintStates, LocalDateTime evaluationTime) {
         return sprintStates.stream()
-                .flatMap(sprintState -> findByState(sprintState, evaluationTime).stream())
+                .flatMap(sprintState -> getByState(sprintState, evaluationTime).stream())
                 .collect(Collectors.toList());
     }
 
-    public List<Sprint> findByStatesInProject(List<SprintState> sprintStates, Long projectId) {
+    public List<Sprint> getByStatesInProject(List<SprintState> sprintStates, Long projectId) {
         LocalDateTime currentTime = LocalDateTime.now();
-        return findByStatesInProject(sprintStates, projectId, currentTime);
+        return getByStatesInProject(sprintStates, projectId, currentTime);
     }
 
-    public List<Sprint> findByStatesInProject(List<SprintState> sprintStates, Long projectId,
+    public List<Sprint> getByStatesInProject(List<SprintState> sprintStates, Long projectId,
             LocalDateTime evaluationTime) {
-        return findByStates(sprintStates, evaluationTime)
+        return getByStates(sprintStates, evaluationTime)
                 .stream()
                 .filter(sprint -> sprint.getProject().getId().equals(projectId))
                 .collect(Collectors.toList());
