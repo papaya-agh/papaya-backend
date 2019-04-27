@@ -2,6 +2,7 @@ package pl.edu.agh.papaya.service.project;
 
 import java.util.Objects;
 import pl.edu.agh.papaya.model.Project;
+import pl.edu.agh.papaya.util.AssertionUtil;
 
 @SuppressWarnings({"checkstyle:HiddenField", "PMD.BeanMembersShouldSerialize"})
 public class ProjectCreationWizard {
@@ -33,16 +34,9 @@ public class ProjectCreationWizard {
 
     public Project create() {
         Project project = new Project();
-        project.setName(require("name", name));
-        project.setDescription(require("description", description));
-        project.setInitialCoefficient(require("initialCoefficient", initialCoefficient));
+        project.setName(AssertionUtil.require("name", name));
+        project.setDescription(AssertionUtil.require("description", description));
+        project.setInitialCoefficient(AssertionUtil.require("initialCoefficient", initialCoefficient));
         return projectService.createProject(project);
-    }
-
-    private <T> T require(String fieldName, T value) {
-        if (value == null) {
-            throw new IllegalStateException(fieldName + " is not initialized");
-        }
-        return value;
     }
 }

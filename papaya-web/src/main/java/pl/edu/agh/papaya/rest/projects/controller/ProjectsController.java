@@ -2,11 +2,8 @@ package pl.edu.agh.papaya.rest.projects.controller;
 
 import com.google.common.collect.Lists;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +15,11 @@ import pl.edu.agh.papaya.api.model.SprintStateDto;
 import pl.edu.agh.papaya.api.service.ProjectsApi;
 import pl.edu.agh.papaya.mappers.AvailabilityMapper;
 import pl.edu.agh.papaya.mappers.ProjectMapper;
-import pl.edu.agh.papaya.mappers.SprintMapper;
-import pl.edu.agh.papaya.mappers.SprintStateMapper;
 import pl.edu.agh.papaya.model.Availability;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
+import pl.edu.agh.papaya.rest.sprints.controller.SprintsController;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.service.availability.AvailabilityService;
 import pl.edu.agh.papaya.service.project.ProjectService;
@@ -31,6 +27,7 @@ import pl.edu.agh.papaya.service.sprint.SprintService;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
 import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
+@SuppressWarnings({"PMD.BeanMembersShouldSerialize", "ClassFanOutComplexity"})
 @RestController
 @RequiredArgsConstructor
 public class ProjectsController implements ProjectsApi {
@@ -38,10 +35,6 @@ public class ProjectsController implements ProjectsApi {
     private static final List<SprintStateDto> ALL_SPRINT_STATE_DTOS = Lists.newArrayList(SprintStateDto.values());
 
     private final SprintService sprintService;
-
-    private final SprintStateMapper sprintStateMapper;
-
-    private final SprintMapper sprintMapper;
 
     private final UserContext userContext;
 
@@ -52,6 +45,8 @@ public class ProjectsController implements ProjectsApi {
     private final AvailabilityService availabilityService;
 
     private final AvailabilityMapper availabilityMapper;
+
+    private final SprintsController sprintsController;
 
     @Override
     public ResponseEntity<ProjectDto> addProject(ProjectDto projectDto) {
@@ -90,18 +85,18 @@ public class ProjectsController implements ProjectsApi {
     public ResponseEntity<List<SprintDto>> getSprints(Long projectId, @Valid List<SprintStateDto> sprintStateDtos) {
         Project project = getValidProject(projectId);
 
-        final LocalDateTime currentTime = LocalDateTime.now();
+        return sprintsController.getSprints(project, sprintStateDtos);
+    }
 
-        List<SprintState> sprintStates = sprintStateMapper.mapFromApi(
-                Optional.ofNullable(sprintStateDtos).orElse(ALL_SPRINT_STATE_DTOS));
+    @Override
+    public ResponseEntity<SprintDto> addSprint(@Valid SprintDto request, Long projectId) {
+        Project project = getValidProject(projectId);
 
-        List<SprintDto> sprints = sprintService.getByStatesInProject(sprintStates, project.getId(), currentTime)
-                .stream()
-                .sorted(Comparator.comparing(sprint -> sprint.getEnrollmentPeriod().getStart()))
-                .map(sprint -> sprintMapper.mapToApi(sprint, currentTime))
-                .collect(Collectors.toList());
+        if (!projectService.hasUserAdminRights(project, userContext.getUser())) {
+            throw new ForbiddenAccessException();
+        }
 
-        return ResponseEntity.ok(sprints);
+        return sprintsController.addSprint(project, request);
     }
 
     @Override

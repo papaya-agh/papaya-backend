@@ -79,6 +79,19 @@ public class SprintService {
                 .collect(Collectors.toList());
     }
 
+    public SprintCreationWizard newSprint() {
+        return new SprintCreationWizard(this);
+    }
+
+    Sprint createSprint(Sprint sprint) {
+        sprintRepository.save(sprint);
+        return sprint;
+    }
+
+    public Optional<Sprint> findLastInProject(Long projectId) {
+        return sprintRepository.findLastInProject(projectId);
+    }
+
     @FunctionalInterface
     private interface SprintStateQuery {
 

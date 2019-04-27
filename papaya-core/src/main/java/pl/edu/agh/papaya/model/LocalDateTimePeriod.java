@@ -65,6 +65,14 @@ public class LocalDateTimePeriod {
         }
     }
 
+    public boolean isAfter(LocalDateTimePeriod period) {
+        return this.start.isAfter(period.getEnd());
+    }
+
+    public boolean isBefore(LocalDateTimePeriod period) {
+        return this.end.isBefore(period.getStart());
+    }
+
     public void extendBy(Duration duration) {
         this.end = this.end.plus(duration);
     }
