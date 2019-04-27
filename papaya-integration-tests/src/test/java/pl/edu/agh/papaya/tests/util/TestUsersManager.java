@@ -44,6 +44,16 @@ public class TestUsersManager {
         return getFullName(testUser);
     }
 
+    public String describeUser(String username) {
+        initialize();
+        return getFullName(testUsers.get(username));
+    }
+
+    public String getUserId(String username) {
+        initialize();
+        return testUsers.get(username).getId().toString();
+    }
+
     @PostConstruct
     public void initialize() {
         if (initialized) {

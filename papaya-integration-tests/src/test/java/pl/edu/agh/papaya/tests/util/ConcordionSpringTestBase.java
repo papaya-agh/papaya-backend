@@ -32,4 +32,12 @@ public abstract class ConcordionSpringTestBase extends ConcordionTestUtils {
     public String switchUser(String username) throws ApiException {
         return testUsersManager.switchUser(username);
     }
+
+    public String describeUser(String username) {
+        return testUsersManager.describeUser(username);
+    }
+
+    public String getUserId(String username) {
+        return testUsersManager.getUserId(username);
+    }
 }

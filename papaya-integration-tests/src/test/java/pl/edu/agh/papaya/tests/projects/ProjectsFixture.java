@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.edu.agh.papaya.api.client.ApiException;
 import pl.edu.agh.papaya.api.client.ApiResponse;
 import pl.edu.agh.papaya.api.client.model.ProjectDto;
+import pl.edu.agh.papaya.api.client.model.UserInProjectDto;
+import pl.edu.agh.papaya.api.client.model.UserRoleDto;
 import pl.edu.agh.papaya.api.client.service.ProjectsApi;
 import pl.edu.agh.papaya.tests.util.ConcordionSpringTestBase;
 
@@ -32,5 +34,12 @@ public class ProjectsFixture extends ConcordionSpringTestBase {
 
     public List<ProjectDto> getProjects() throws ApiException {
         return projectsApi.getProjects();
+    }
+
+    public void addPeterToProject(long id) throws ApiException {
+        UserInProjectDto userInProject = new UserInProjectDto()
+                .userId(getUserId("peter"))
+                .role(UserRoleDto.MEMBER);
+        projectsApi.addUserToProject(userInProject, id);
     }
 }

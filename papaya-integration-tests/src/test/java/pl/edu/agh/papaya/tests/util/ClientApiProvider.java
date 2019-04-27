@@ -25,7 +25,7 @@ public class ClientApiProvider {
 
     public ApiClient getApiClient() {
         if (apiClient == null) {
-            apiClient = new ApiClient()
+            apiClient = new DescriptiveApiClient()
                     .setBasePath("http://localhost:" + port + "/api");
         }
 
