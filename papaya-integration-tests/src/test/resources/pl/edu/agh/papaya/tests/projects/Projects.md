@@ -33,3 +33,15 @@ is [added to the project](- "addPeterToProject(#project.id)").
 
 Now, [ ](- "c:echo=switchUser('peter')") should
 [have access to the project](- "c:assert-true=200==tryGetProjectById(#project.id).statusCode").
+
+## Removing users from the project
+
+Authenticating as [ ](- "c:echo=switchUser('heinz')").
+
+The user [ ](- "c:echo=describeUser('peter')")
+is [removed from the project](- "removePeterFromProject(#project.id)").
+
+When authenticated as [ ](- "c:echo=switchUser('peter')"), the current user
+[should not have access](- "c:assert-true=403==tryGetProjectById(#project.id).statusCode")
+to the created project. Their [projects](- "#projects2=getProjects()")
+shall be [empty](- "c:assert-true=#projects2.empty").

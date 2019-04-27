@@ -36,10 +36,14 @@ public class ProjectsFixture extends ConcordionSpringTestBase {
         return projectsApi.getProjects();
     }
 
-    public void addPeterToProject(long id) throws ApiException {
+    public void addPeterToProject(long projectId) throws ApiException {
         UserInProjectDto userInProject = new UserInProjectDto()
                 .userId(getUserId("peter"))
                 .role(UserRoleDto.MEMBER);
-        projectsApi.addUserToProject(userInProject, id);
+        projectsApi.addUserToProject(userInProject, projectId);
+    }
+
+    public void removePeterFromProject(long projectId) throws ApiException {
+        projectsApi.removeUser(projectId, getUserId("peter"));
     }
 }

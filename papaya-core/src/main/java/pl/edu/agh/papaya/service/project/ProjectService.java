@@ -56,6 +56,7 @@ public class ProjectService {
     public boolean isUserInProject(Project project, String userId) {
         return userInProjectRepository.findByProject(project)
                 .stream()
+                .filter(up -> up.getUserRole() != UserRole.INACTIVE)
                 .map(UserInProject::getUser)
                 .map(User::getId)
                 .map(Object::toString)

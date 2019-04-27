@@ -1,12 +1,13 @@
 package pl.edu.agh.papaya.repository;
 
 import java.util.List;
-import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
@@ -17,9 +18,10 @@ public interface UserInProjectRepository extends CrudRepository<UserInProject, L
 
     List<UserInProject> findByProject(Project project);
 
-    @Query("select u from UserInProject u where u.project.id = ?1 and u.user.id = ?2")
     Optional<UserInProject> findByProjectIdAndUserId(Long projectId, Long userId);
 
+    @Transactional
+    @Modifying
     @Query("update UserInProject set userRole = :role where project = :project and user = :user")
     void updateUserRole(@Param("project") Project project, @Param("user") User user, @Param("role") UserRole role);
 }
