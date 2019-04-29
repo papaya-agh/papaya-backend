@@ -3,6 +3,7 @@ package pl.edu.agh.papaya.service.project;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.model.Project;
@@ -46,7 +47,7 @@ public class ProjectService {
             return Collections.emptyList();
         }
 
-        return projectRepository.findByUserId(parsedUserId);
+        return projectRepository.findActiveByUserId(parsedUserId);
     }
 
     public Optional<UserInProject> getUserInProject(Project project, User user) {
@@ -88,22 +89,26 @@ public class ProjectService {
     }
 
     public void setUserRole(Project project, User user, UserRole role) {
-        if (!project.hasRole(userContext.getUser(), UserRole.ADMIN)) {
-            throw new UserNotAuthorizedException();
-        }
+        validateCurrentUserAdmin(project);
 
         UserInProject userInProject = new UserInProject(project, user, role);
         userInProjectRepository.save(userInProject);
     }
 
+    private void validateCurrentUserAdmin(Project project) {
+        if (!project.isAdmin(userContext.getUser())) {
+            throw new UserNotAuthorizedException();
+        }
+    }
+
     public List<UserInProject> getUsersInProject(Project project) {
-        return userInProjectRepository.findByProject(project);
+        return userInProjectRepository.findByProject(project).stream()
+                .filter(UserInProject::isUserActive)
+                .collect(Collectors.toList());
     }
 
     public void removeUser(Project project, User user) {
-        if (!project.hasRole(userContext.getUser(), UserRole.ADMIN)) {
-            throw new UserNotAuthorizedException();
-        }
+        validateCurrentUserAdmin(project);
 
         userInProjectRepository.updateUserRole(project, user, UserRole.INACTIVE);
     }

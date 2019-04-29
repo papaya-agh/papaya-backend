@@ -6,7 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.edu.agh.papaya.api.client.ApiException;
 import pl.edu.agh.papaya.api.client.ApiResponse;
 import pl.edu.agh.papaya.api.client.model.ProjectDto;
-import pl.edu.agh.papaya.api.client.model.UserInProjectDto;
+import pl.edu.agh.papaya.api.client.model.ProjectMemberDto;
+import pl.edu.agh.papaya.api.client.model.UserIdentificationDto;
 import pl.edu.agh.papaya.api.client.model.UserRoleDto;
 import pl.edu.agh.papaya.api.client.service.ProjectsApi;
 import pl.edu.agh.papaya.tests.util.ConcordionSpringTestBase;
@@ -36,14 +37,28 @@ public class ProjectsFixture extends ConcordionSpringTestBase {
         return projectsApi.getProjects();
     }
 
-    public void addPeterToProject(long projectId) throws ApiException {
-        UserInProjectDto userInProject = new UserInProjectDto()
-                .userId(getUserId("peter"))
-                .role(UserRoleDto.MEMBER);
-        projectsApi.addUserToProject(userInProject, projectId);
+    public void addToProject(long projectId, String username) throws ApiException {
+        UserIdentificationDto userIdentification = new UserIdentificationDto();
+        userIdentification.setEmail(getUser(username).getEmail());
+        projectsApi.addUserToProject(userIdentification, projectId);
     }
 
-    public void removePeterFromProject(long projectId) throws ApiException {
-        projectsApi.removeUser(projectId, getUserId("peter"));
+    public ApiResponse<ProjectMemberDto> tryAddToProjectNonExistingUser(long projectId) {
+        UserIdentificationDto userIdentification = new UserIdentificationDto();
+        userIdentification.setEmail("i.do.not.exist@example.com");
+        return failSilently(() -> projectsApi.addUserToProjectWithHttpInfo(userIdentification, projectId));
+    }
+
+    public void removeFromProject(long projectId, String username) throws ApiException {
+        projectsApi.removeUserFromProject(projectId, getUserId(username));
+    }
+
+    public ApiResponse<Void> tryRemoveFromProject(long projectId, String username) {
+        return failSilently(() -> projectsApi.removeUserFromProjectWithHttpInfo(projectId, getUserId(username)));
+    }
+
+    public ApiResponse<Void> trySetRoleInProject(long projectId, String username, String newRole) {
+        ProjectMemberDto pm = new ProjectMemberDto().role(UserRoleDto.valueOf(newRole));
+        return failSilently(() -> projectsApi.setUserRoleWithHttpInfo(pm, projectId, getUserId(username)));
     }
 }

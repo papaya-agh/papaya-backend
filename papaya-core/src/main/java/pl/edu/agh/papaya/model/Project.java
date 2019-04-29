@@ -29,6 +29,10 @@ public class Project extends BaseEntity {
 
     private double initialCoefficient;
 
+    public boolean isAdmin(User user) {
+        return hasRole(user, UserRole.ADMIN);
+    }
+
     public boolean hasRole(User user, UserRole role) {
         return usersInProject.stream()
                 .filter(up -> up.getUser().equals(user))

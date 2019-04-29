@@ -7,12 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
+import pl.edu.agh.papaya.api.model.ProjectMemberDto;
 import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.api.model.SprintStateDto;
-import pl.edu.agh.papaya.api.model.UserInProjectDto;
+import pl.edu.agh.papaya.api.model.UserIdentificationDto;
+import pl.edu.agh.papaya.api.model.UserRoleDto;
 import pl.edu.agh.papaya.api.service.ProjectsApi;
 import pl.edu.agh.papaya.rest.projects.service.ProjectsRestService;
 import pl.edu.agh.papaya.rest.projects.service.SprintsRestService;
+import pl.edu.agh.papaya.util.BadRequestException;
 
 @SuppressWarnings({"PMD.BeanMembersShouldSerialize", "ClassFanOutComplexity"})
 @RestController
@@ -29,8 +32,8 @@ public class ProjectsRestController implements ProjectsApi {
     }
 
     @Override
-    public ResponseEntity<Void> addUserToProject(UserInProjectDto userInProject, Long projectId) {
-        return projectsRestService.addUserToProject(userInProject, projectId);
+    public ResponseEntity<ProjectMemberDto> addUserToProject(UserIdentificationDto userIdentification, Long projectId) {
+        return projectsRestService.addUserToProject(userIdentification, projectId);
     }
 
     @Override
@@ -41,6 +44,40 @@ public class ProjectsRestController implements ProjectsApi {
     @Override
     public ResponseEntity<List<ProjectDto>> getProjects() {
         return projectsRestService.getProjects();
+    }
+
+    @Override
+    public ResponseEntity<Void> removeUserFromProject(Long projectId, Long userId) {
+        return projectsRestService.removeUserFromProject(projectId, userId);
+    }
+
+    @Override
+    public ResponseEntity<Void> setUserRole(ProjectMemberDto projectMember, Long projectId, Long userId) {
+        if (projectMember.getUser() != null) {
+            throw new BadRequestException();
+        }
+
+        UserRoleDto userRoleDto = projectMember.getRole();
+        if (userRoleDto == null) {
+            throw new BadRequestException();
+        }
+        projectsRestService.setUserRole(userRoleDto, projectId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<SprintDto>> getSprints(Long projectId, List<SprintStateDto> sprintStateDtos) {
+        return sprintsRestService.getSprints(projectId, sprintStateDtos);
+    }
+
+    @Override
+    public ResponseEntity<AvailabilityDto> getUserAvailability(Long projectId, Long sprintId) {
+        return projectsRestService.getUserAvailability(projectId, sprintId);
+    }
+
+    @Override
+    public ResponseEntity<AvailabilityDto> updateUserAvailability(AvailabilityDto body, Long projectId, Long sprintId) {
+        return projectsRestService.updateUserAvailability(body, projectId, sprintId);
     }
 
     @Override
@@ -58,34 +95,24 @@ public class ProjectsRestController implements ProjectsApi {
         return projectsRestService.modifySprint(sprintDto, projectId, sprintId);
     }
 
-    @Override
-    public ResponseEntity<AvailabilityDto> getUserAvailability(Long projectId, Long sprintId) {
-        return projectsRestService.getUserAvailability(projectId, sprintId);
+    public ResponseEntity<List<UserInProjectDto>> getUsersFromProject(Long projectId) {
+        return projectsRestService.getUsersFromProject(projectId);
     }
 
     @Override
-    public ResponseEntity<AvailabilityDto> updateUserAvailability(@Valid AvailabilityDto availabilityDto,
-            Long projectId, Long sprintId) {
-        return projectsRestService.updateUserAvailability(availabilityDto, projectId, sprintId);
-
-        public ResponseEntity<List<UserInProjectDto>> getUsersFromProject (Long projectId){
-            return projectsRestService.getUsersFromProject(projectId);
-        }
-
-        @Override
-        public ResponseEntity<Void> removeUser (Long projectId, String userId){
-            return projectsRestService.removeUser(projectId, userId);
-        }
-
-        @Override
-        public ResponseEntity<UserInProjectDto> setUserRole (UserInProjectDto userInProject, Long projectId, String
-        userId){
-            return projectsRestService.setUserRole(userInProject, projectId, userId);
-        }
-
-        @Override
-        public ResponseEntity<List<SprintDto>> getSprints (Long
-        projectId, @Valid List < SprintStateDto > sprintStateDtos){
-            return sprintsRestService.getSprints(projectId, sprintStateDtos);
-        }
+    public ResponseEntity<Void> removeUser(Long projectId, String userId) {
+        return projectsRestService.removeUser(projectId, userId);
     }
+
+    @Override
+    public ResponseEntity<UserInProjectDto> setUserRole(UserInProjectDto userInProject, Long projectId, String
+            userId) {
+        return projectsRestService.setUserRole(userInProject, projectId, userId);
+    }
+
+    @Override
+    public ResponseEntity<List<SprintDto>> getSprints(Long
+            projectId, @Valid List<SprintStateDto> sprintStateDtos) {
+        return sprintsRestService.getSprints(projectId, sprintStateDtos);
+    }
+}

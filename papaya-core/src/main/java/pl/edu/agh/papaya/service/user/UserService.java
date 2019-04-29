@@ -12,7 +12,11 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public Optional<User> getUserById(String userId) {
+    public Optional<User> getUserById(Long userId) {
         return userRepository.findById(userId);
+    }
+
+    public Optional<User> getUserByEmail(String userEmail) {
+        return userRepository.findByEmail(userEmail);
     }
 }

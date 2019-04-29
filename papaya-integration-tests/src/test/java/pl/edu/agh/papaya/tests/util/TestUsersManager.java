@@ -49,9 +49,14 @@ public class TestUsersManager {
         return getFullName(testUsers.get(username));
     }
 
-    public String getUserId(String username) {
+    public long getUserId(String username) {
         initialize();
-        return testUsers.get(username).getId().toString();
+        return testUsers.get(username).getId();
+    }
+
+    public User getUser(String username) {
+        initialize();
+        return testUsers.get(username);
     }
 
     @PostConstruct
@@ -62,14 +67,14 @@ public class TestUsersManager {
 
         initialized = true;
 
-        addTestUser("heinz", "Heinz", "Doofenshmirtz");
-        addTestUser("rick", "Rick", "Sanchez");
-        addTestUser("peter", "Peter", "Griffin");
+        addTestUser("heinz", "Heinz", "Doofenshmirtz", "heinz.d@evil.inc");
+        addTestUser("rick", "Rick", "Sanchez", "rick.c137@sanchez.es");
+        addTestUser("peter", "Peter", "Griffin", "peter.griffin@hotmail.com");
     }
 
-    private void addTestUser(String username, String firstName, String lastName) {
+    private void addTestUser(String username, String firstName, String lastName, String email) {
         User testUser = new User();
-        testUser.setEmail(username + "@example.com");
+        testUser.setEmail(email);
         testUser.setFirstName(firstName);
         testUser.setLastName(lastName);
         userRepository.save(testUser);

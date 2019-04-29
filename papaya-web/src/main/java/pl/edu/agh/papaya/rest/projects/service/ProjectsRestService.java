@@ -11,10 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
+import pl.edu.agh.papaya.api.model.ProjectMemberDto;
+import pl.edu.agh.papaya.api.model.UserIdentificationDto;
 import pl.edu.agh.papaya.api.model.UserInProjectDto;
+import pl.edu.agh.papaya.api.model.UserRoleDto;
 import pl.edu.agh.papaya.mappers.AvailabilityMapper;
 import pl.edu.agh.papaya.mappers.ProjectMapper;
 import pl.edu.agh.papaya.mappers.UserInProjectMapper;
+import pl.edu.agh.papaya.mappers.UserMapper;
 import pl.edu.agh.papaya.mappers.UserRoleMapper;
 import pl.edu.agh.papaya.model.Availability;
 import pl.edu.agh.papaya.model.Project;
@@ -23,7 +27,7 @@ import pl.edu.agh.papaya.model.SprintState;
 import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.model.UserRole;
-import pl.edu.agh.papaya.rest.projects.service.SprintsRestService;
+import pl.edu.agh.papaya.rest.common.UserIdentificationService;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.security.UserNotAuthorizedException;
 import pl.edu.agh.papaya.service.availability.AvailabilityService;
@@ -51,6 +55,8 @@ public class ProjectsRestService {
 
     private final UserService userService;
 
+    private final UserIdentificationService userIdentificationService;
+
     private final AvailabilityService availabilityService;
 
     private final AvailabilityMapper availabilityMapper;
@@ -58,6 +64,8 @@ public class ProjectsRestService {
     private final UserRoleMapper userRoleMapper;
 
     private final UserInProjectMapper userInProjectMapper;
+
+    private final UserMapper userMapper;
 
     public ResponseEntity<ProjectDto> addProject(ProjectDto projectDto) {
         Project created = projectService.newProject()
@@ -68,22 +76,22 @@ public class ProjectsRestService {
         return ResponseEntity.ok(projectMapper.mapToApi(created));
     }
 
-    public ResponseEntity<Void> addUserToProject(UserInProjectDto userInProject, Long projectId) {
-        User user = userService.getUserById(userInProject.getUserId())
+    public ResponseEntity<ProjectMemberDto> addUserToProject(UserIdentificationDto userIdentification, Long projectId) {
+        User user = userIdentificationService.identify(userIdentification)
                 .orElseThrow(BadRequestException::new);
 
         Project project = projectService.getProjectById(projectId)
                 .orElseThrow(ResourceNotFoundException::new);
 
-        UserRole role = userRoleMapper.mapFromApi(userInProject.getRole());
-
         try {
-            projectService.setUserRole(project, user, role);
+            projectService.setUserRole(project, user, UserRole.MEMBER);
         } catch (UserNotAuthorizedException e) {
             throw new ForbiddenAccessException(e);
         }
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok(new ProjectMemberDto()
+                .user(userMapper.mapToApi(user))
+                .role(UserRoleDto.MEMBER));
     }
 
     public ResponseEntity<ProjectDto> getProjectById(Long id) {
@@ -108,24 +116,28 @@ public class ProjectsRestService {
         return ResponseEntity.ok(projectMapper.mapToApi(projects));
     }
 
-    public ResponseEntity<List<UserInProjectDto>> getUsersFromProject(Long projectId) {
+    public ResponseEntity<List<ProjectMemberDto>> getUsersFromProject(Long projectId) {
         Project project = projectService.getProjectById(projectId)
                 .orElseThrow(ResourceNotFoundException::new);
 
         List<UserInProject> usersInProject = projectService.getUsersInProject(project);
 
-        List<UserInProjectDto> usersInProjectDto = usersInProject.stream()
+        List<ProjectMemberDto> usersInProjectDto = usersInProject.stream()
                 .map(userInProjectMapper::mapToApi)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(usersInProjectDto);
     }
 
-    public ResponseEntity<Void> removeUser(Long projectId, String userId) {
+    public ResponseEntity<Void> removeUserFromProject(Long projectId, Long userId) {
         User user = userService.getUserById(userId)
                 .orElseThrow(BadRequestException::new);
 
         Project project = projectService.getProjectById(projectId)
                 .orElseThrow(ResourceNotFoundException::new);
+
+        if (project.isAdmin(user)) {
+            throw new BadRequestException("Cannot remove an admin");
+        }
 
         try {
             projectService.removeUser(project, user);
@@ -136,18 +148,14 @@ public class ProjectsRestService {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    public ResponseEntity<UserInProjectDto> setUserRole(UserInProjectDto userInProject, Long projectId, String userId) {
-        if (userInProject.getUserId() != null && !userInProject.getUserId().equals(userId)) {
-            throw new BadRequestException();
-        }
-
+    public void setUserRole(UserRoleDto userRole, Long projectId, Long userId) {
         User user = userService.getUserById(userId)
                 .orElseThrow(BadRequestException::new);
 
         Project project = projectService.getProjectById(projectId)
                 .orElseThrow(ResourceNotFoundException::new);
 
-        UserRole role = userRoleMapper.mapFromApi(userInProject.getRole());
+        UserRole role = userRoleMapper.mapFromApi(userRole);
 
         try {
             projectService.setUserRole(project, user, role);
@@ -211,7 +219,7 @@ public class ProjectsRestService {
         return sprint.getProject().getId().equals(project.getId());
     }
 
-    public ResponseEntity<AvailabilityDto> updateUserAvailability(@Valid AvailabilityDto availabilityDto,
+    public ResponseEntity<AvailabilityDto> updateUserAvailability(AvailabilityDto availabilityDto,
             Long projectId, Long sprintId) {
         Project project = getValidProject(projectId);
         Sprint sprint = getValidSprint(sprintId);

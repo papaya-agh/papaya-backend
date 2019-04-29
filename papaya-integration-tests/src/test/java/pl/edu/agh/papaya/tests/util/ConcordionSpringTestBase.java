@@ -13,6 +13,7 @@ import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import pl.edu.agh.papaya.Papaya;
 import pl.edu.agh.papaya.api.client.ApiException;
+import pl.edu.agh.papaya.model.User;
 
 @RunWith(ConcordionRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
@@ -37,7 +38,11 @@ public abstract class ConcordionSpringTestBase extends ConcordionTestUtils {
         return testUsersManager.describeUser(username);
     }
 
-    public String getUserId(String username) {
+    public long getUserId(String username) {
         return testUsersManager.getUserId(username);
+    }
+
+    public User getUser(String username) {
+        return testUsersManager.getUser(username);
     }
 }
