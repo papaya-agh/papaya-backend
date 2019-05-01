@@ -1,25 +1,22 @@
-package pl.edu.agh.papaya.rest.projects.controller;
+package pl.edu.agh.papaya.rest.projects.service;
 
-import com.google.common.collect.Lists;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
 import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.api.model.SprintStateDto;
-import pl.edu.agh.papaya.api.service.ProjectsApi;
 import pl.edu.agh.papaya.mappers.AvailabilityMapper;
 import pl.edu.agh.papaya.mappers.ProjectMapper;
 import pl.edu.agh.papaya.model.Availability;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
-import pl.edu.agh.papaya.rest.sprints.controller.SprintsController;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.service.availability.AvailabilityService;
 import pl.edu.agh.papaya.service.project.ProjectService;
@@ -27,14 +24,13 @@ import pl.edu.agh.papaya.service.sprint.SprintService;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
 import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
-@SuppressWarnings({"PMD.BeanMembersShouldSerialize", "ClassFanOutComplexity"})
-@RestController
+@Service
 @RequiredArgsConstructor
-public class ProjectsController implements ProjectsApi {
-
-    private static final List<SprintStateDto> ALL_SPRINT_STATE_DTOS = Lists.newArrayList(SprintStateDto.values());
+public class ProjectsRestService {
 
     private final SprintService sprintService;
+
+    private final SprintsRestService sprintsRestService;
 
     private final UserContext userContext;
 
@@ -46,9 +42,6 @@ public class ProjectsController implements ProjectsApi {
 
     private final AvailabilityMapper availabilityMapper;
 
-    private final SprintsController sprintsController;
-
-    @Override
     public ResponseEntity<ProjectDto> addProject(ProjectDto projectDto) {
         Project created = projectService.newProject()
                 .withName(projectDto.getName())
@@ -58,7 +51,6 @@ public class ProjectsController implements ProjectsApi {
         return ResponseEntity.ok(projectMapper.mapToApi(created));
     }
 
-    @Override
     public ResponseEntity<ProjectDto> getProjectById(Long id) {
         Project project = getValidProject(id);
 
@@ -75,31 +67,37 @@ public class ProjectsController implements ProjectsApi {
         return project;
     }
 
-    @Override
     public ResponseEntity<List<ProjectDto>> getProjects() {
         List<Project> projects = projectService.getUserProjects(userContext.getUserId());
         return ResponseEntity.ok(projectMapper.mapToApi(projects));
     }
 
-    @Override
     public ResponseEntity<List<SprintDto>> getSprints(Long projectId, @Valid List<SprintStateDto> sprintStateDtos) {
         Project project = getValidProject(projectId);
 
-        return sprintsController.getSprints(project, sprintStateDtos);
+        return sprintsRestService.getSprints(project, sprintStateDtos);
     }
 
-    @Override
-    public ResponseEntity<SprintDto> addSprint(@Valid SprintDto request, Long projectId) {
+    public ResponseEntity<SprintDto> addSprint(@Valid SprintDto sprintDto, Long projectId) {
         Project project = getValidProject(projectId);
 
-        if (!projectService.hasUserAdminRights(project, userContext.getUser())) {
+        if (!projectService.isAdmin(project, userContext.getUser())) {
             throw new ForbiddenAccessException();
         }
 
-        return sprintsController.addSprint(project, request);
+        return sprintsRestService.addSprint(project, sprintDto);
     }
 
-    @Override
+    public ResponseEntity<SprintDto> modifySprint(@Valid SprintDto sprintDto, Long projectId, Long sprintId) {
+        Project project = getValidProject(projectId);
+
+        if (!projectService.isAdmin(project, userContext.getUser())) {
+            throw new ForbiddenAccessException();
+        }
+
+        return sprintsRestService.modifySprint(sprintId, sprintDto);
+    }
+
     public ResponseEntity<AvailabilityDto> getUserAvailability(Long projectId, Long sprintId) {
         Project project = getValidProject(projectId);
         Sprint sprint = getValidSprint(sprintId);
@@ -116,7 +114,15 @@ public class ProjectsController implements ProjectsApi {
         return ResponseEntity.ok(availability);
     }
 
-    @Override
+    private Sprint getValidSprint(Long sprintId) {
+        return sprintService.getById(sprintId)
+                .orElseThrow(ResourceNotFoundException::new);
+    }
+
+    private boolean isSprintInProject(Sprint sprint, Project project) {
+        return sprint.getProject().getId().equals(project.getId());
+    }
+
     public ResponseEntity<AvailabilityDto> updateUserAvailability(@Valid AvailabilityDto availabilityDto,
             Long projectId, Long sprintId) {
         Project project = getValidProject(projectId);
@@ -134,15 +140,6 @@ public class ProjectsController implements ProjectsApi {
                 .orElseGet(() -> createAvailability(availabilityDto, sprint));
 
         return ResponseEntity.ok(availabilityMapper.mapToApi(availability));
-    }
-
-    private Sprint getValidSprint(Long sprintId) {
-        return sprintService.getById(sprintId)
-                .orElseThrow(ResourceNotFoundException::new);
-    }
-
-    private boolean isSprintInProject(Sprint sprint, Project project) {
-        return sprint.getProject().getId().equals(project.getId());
     }
 
     private boolean isAvailabilityDeclarationNotAllowed(Sprint sprint) {

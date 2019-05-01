@@ -65,7 +65,7 @@ public class ProjectService {
         return isUserInProject(project, user.getId().toString());
     }
 
-    public boolean hasUserAdminRights(Project project, User user) {
+    public boolean isAdmin(Project project, User user) {
         Optional<UserInProject> userInProject = getUserInProject(project, user);
         return userInProject
                 .map(inProject -> inProject.getUserRole().equals(UserRole.ADMIN))
