@@ -1,6 +1,7 @@
 package pl.edu.agh.papaya.model;
 
 import java.util.List;
+import java.util.Optional;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -28,6 +29,13 @@ public class Project extends BaseEntity {
     private String description;
 
     private double initialCoefficient;
+
+    public Optional<UserRole> getUserRole(User user) {
+        return usersInProject.stream()
+                .filter(up -> up.getUser().getId().equals(user.getId()))
+                .findAny()
+                .map(UserInProject::getUserRole);
+    }
 
     public boolean isAdmin(User user) {
         return hasRole(user, UserRole.ADMIN);
