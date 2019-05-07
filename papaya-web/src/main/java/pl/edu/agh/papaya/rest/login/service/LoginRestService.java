@@ -16,18 +16,14 @@ public class LoginRestService {
     private AuthenticationService authenticationService;
 
     public ResponseEntity<LoginResult> requestLogin(LoginRequest request) {
-        String token;
-        LoginResult result = new LoginResult();
+        LoginResult result;
         try {
-            token = authenticationService.logIn(request.getUsername());
+            result = authenticationService.logIn(request.getUsername());
         } catch (AuthenticationException e) {
-            result.setValid(false);
-            result.setErrorMessage(e.getLocalizedMessage());
+            result = new LoginResult().valid(false)
+                    .errorMessage(e.getLocalizedMessage());
             return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
         }
-
-        result.setValid(true);
-        result.setToken(token);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }
