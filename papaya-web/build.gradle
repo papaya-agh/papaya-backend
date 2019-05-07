@@ -43,3 +43,6 @@ configurations {
         extendsFrom annotationProcessor
     }
 }
+
+task stage(dependsOn: ['build', 'clean'])
+build.mustRunAfter clean
