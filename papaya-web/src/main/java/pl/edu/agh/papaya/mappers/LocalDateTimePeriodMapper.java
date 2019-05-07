@@ -14,9 +14,9 @@ public class LocalDateTimePeriodMapper implements Mapper<LocalDateTimePeriod, Lo
                 .end(localDateTimePeriod.getEnd());
     }
 
-    public LocalDateTimePeriod mapFromApi(LocalDateTimePeriodDto periodDto) {
-        var period = new LocalDateTimePeriod();
-        period.set(periodDto.getStart(), periodDto.getEnd());
-        return period;
+    public LocalDateTimePeriod mapFromApi(LocalDateTimePeriodDto localDateTimePeriodDto) {
+        var localDateTimePeriod = new LocalDateTimePeriod();
+        localDateTimePeriod.set(localDateTimePeriodDto.getStart(), localDateTimePeriodDto.getEnd());
+        return localDateTimePeriod;
     }
 }

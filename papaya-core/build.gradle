@@ -25,8 +25,9 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     compile 'com.h2database:h2'
     compile 'org.postgresql:postgresql:42.2.5'
+    compile 'commons-validator:commons-validator:1.6'
 }
 
-dependencyManagement {
-    imports { mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}") }
+dependencyManagement.imports {
+    mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 }

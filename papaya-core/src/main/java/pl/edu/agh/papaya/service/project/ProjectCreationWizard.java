@@ -1,6 +1,7 @@
 package pl.edu.agh.papaya.service.project;
 
 import java.util.Objects;
+import org.apache.commons.validator.routines.UrlValidator;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.util.AssertionUtil;
 
@@ -12,6 +13,8 @@ public class ProjectCreationWizard {
     private String name;
     private String description;
     private Double initialCoefficient;
+    private String webhookUrl;
+    private String channelName;
 
     ProjectCreationWizard(ProjectService projectService) {
         this.projectService = Objects.requireNonNull(projectService);
@@ -32,11 +35,25 @@ public class ProjectCreationWizard {
         return this;
     }
 
+    public ProjectCreationWizard withWebhook(String webhookUrl) {
+        this.webhookUrl = new UrlValidator().isValid(webhookUrl) ? webhookUrl : null;
+        return this;
+    }
+
+    public ProjectCreationWizard withChannelName(String channelName) {
+        this.channelName = channelName;
+        return this;
+    }
+
     public Project create() {
         Project project = new Project();
         project.setName(AssertionUtil.require("name", name));
         project.setDescription(AssertionUtil.require("description", description));
         project.setInitialCoefficient(AssertionUtil.require("initialCoefficient", initialCoefficient));
+        if (webhookUrl != null) {
+            project.setWebHook(webhookUrl);
+            project.setChannelName(channelName);
+        }
         return projectService.createProject(project);
     }
 }

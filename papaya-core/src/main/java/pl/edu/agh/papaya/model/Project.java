@@ -30,7 +30,11 @@ public class Project extends BaseEntity {
 
     private double initialCoefficient;
 
-    public Optional<UserRole> getUserRole(User user) {
+    private String webHook;
+
+    private String channelName;
+
+    public Optional<UserRole> getUserRoleInProject(User user) {
         return usersInProject.stream()
                 .filter(up -> up.getUser().getId().equals(user.getId()))
                 .findAny()
@@ -42,10 +46,7 @@ public class Project extends BaseEntity {
     }
 
     public boolean hasRole(User user, UserRole role) {
-        return usersInProject.stream()
-                .filter(up -> up.getUser().equals(user))
-                .findAny()
-                .map(UserInProject::getUserRole)
+        return getUserRoleInProject(user)
                 .map(role::equals)
                 .orElse(false);
     }

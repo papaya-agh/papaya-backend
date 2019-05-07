@@ -32,7 +32,7 @@ public class UsersController implements UsersApi, MeApi {
 
     @Override
     public ResponseEntity<UserDto> getUser(Long userId) {
-        User user = userService.getById(userId).orElseThrow(ResourceNotFoundException::new);
+        User user = userService.getUserById(userId).orElseThrow(ResourceNotFoundException::new);
         return ResponseEntity.ok(userMapper.mapToApi(user));
     }
 

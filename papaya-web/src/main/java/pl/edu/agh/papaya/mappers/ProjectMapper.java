@@ -18,7 +18,7 @@ public class ProjectMapper implements Mapper<Project, ProjectDto> {
 
     @Override
     public ProjectDto mapToApi(Project modelProject) {
-        UserRole userRole = modelProject.getUserRole(userContext.getUser())
+        UserRole userRole = modelProject.getUserRoleInProject(userContext.getUser())
                 .orElseThrow(ForbiddenAccessException::new);
         return new ProjectDto()
                 .id(modelProject.getId())

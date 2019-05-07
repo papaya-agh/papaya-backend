@@ -16,7 +16,8 @@ import pl.edu.agh.papaya.model.UserRole;
 @Repository
 public interface UserInProjectRepository extends CrudRepository<UserInProject, Long> {
 
-    List<UserInProject> findByProject(Project project);
+    @Query("select up from UserInProject up where up.project = :project and up.userRole <> 'INACTIVE'")
+    List<UserInProject> findActiveByProject(@Param("project") Project project);
 
     Optional<UserInProject> findByProjectIdAndUserId(Long projectId, Long userId);
 

@@ -3,8 +3,7 @@ package pl.edu.agh.papaya.service.project;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,16 +17,14 @@ import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.security.UserNotAuthorizedException;
 
 @Service
+@RequiredArgsConstructor
 public class ProjectService {
 
-    @Autowired
-    private ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository;
 
-    @Autowired
-    private UserInProjectRepository userInProjectRepository;
+    private final UserInProjectRepository userInProjectRepository;
 
-    @Autowired
-    private UserContext userContext;
+    private final UserContext userContext;
 
     public Optional<Project> getProjectById(Long id) {
         return projectRepository.findById(id);
@@ -57,9 +54,8 @@ public class ProjectService {
     }
 
     public boolean isUserInProject(Project project, String userId) {
-        return userInProjectRepository.findByProject(project)
+        return userInProjectRepository.findActiveByProject(project)
                 .stream()
-                .filter(up -> up.getUserRole() != UserRole.INACTIVE)
                 .map(UserInProject::getUser)
                 .map(User::getId)
                 .map(Object::toString)
@@ -103,9 +99,7 @@ public class ProjectService {
     }
 
     public List<UserInProject> getUsersInProject(Project project) {
-        return userInProjectRepository.findByProject(project).stream()
-                .filter(UserInProject::isUserActive)
-                .collect(Collectors.toList());
+        return userInProjectRepository.findActiveByProject(project);
     }
 
     public void removeUser(Project project, User user) {

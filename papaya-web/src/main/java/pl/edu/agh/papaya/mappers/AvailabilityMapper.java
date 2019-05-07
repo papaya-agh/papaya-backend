@@ -12,7 +12,6 @@ public class AvailabilityMapper implements Mapper<Availability, AvailabilityDto>
     @Override
     public AvailabilityDto mapToApi(Availability availability) {
         return new AvailabilityDto()
-                .userId(availability.getUserInProject().getUser().getId())
                 .timeAvailable(Optional.ofNullable(availability.getTimeAvailable())
                         .map(Duration::toMinutes)
                         .orElse(0L))

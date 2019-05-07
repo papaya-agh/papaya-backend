@@ -1,17 +1,17 @@
 package pl.edu.agh.papaya.rest.common;
 
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.papaya.api.model.UserIdentificationDto;
 import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.service.user.UserService;
 
 @Component
+@RequiredArgsConstructor
 public class UserIdentificationService {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     public Optional<User> identify(UserIdentificationDto userIdentification) {
         Long userId = userIdentification.getId();

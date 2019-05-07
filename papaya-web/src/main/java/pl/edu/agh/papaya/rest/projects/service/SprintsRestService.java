@@ -36,6 +36,8 @@ public class SprintsRestService {
 
     private final SprintMapper sprintMapper;
 
+    private final LocalDateTimePeriodMapper localDateTimePeriodMapper;
+
     public ResponseEntity<List<SprintDto>> getSprints(Long projectId, List<SprintStateDto> sprintStateDtos) {
         final LocalDateTime currentTime = LocalDateTime.now();
 
@@ -52,9 +54,8 @@ public class SprintsRestService {
     }
 
     public ResponseEntity<SprintDto> addSprint(Project project, @Valid SprintDto sprintDto) {
-        var periodMapper = new LocalDateTimePeriodMapper();
-        LocalDateTimePeriod enrollmentPeriod = periodMapper.mapFromApi(sprintDto.getEnrollmentPeriod());
-        LocalDateTimePeriod durationPeriod = periodMapper.mapFromApi(sprintDto.getDurationPeriod());
+        LocalDateTimePeriod enrollmentPeriod = localDateTimePeriodMapper.mapFromApi(sprintDto.getEnrollmentPeriod());
+        LocalDateTimePeriod durationPeriod = localDateTimePeriodMapper.mapFromApi(sprintDto.getDurationPeriod());
 
         Optional<Sprint> lastSprintOpt = sprintService.getLastInProject(project.getId());
         lastSprintOpt.ifPresent(lastSprint -> {

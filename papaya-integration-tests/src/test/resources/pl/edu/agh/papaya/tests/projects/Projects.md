@@ -2,7 +2,7 @@
 
 ## Creating an example project
 
-Authenticating as [ ](- "c:echo=switchUser('heinz@example.com')").
+Authenticating as [ ](- "c:echo=switchUser('heinz')").
 
 Current user's [projects](- "#projects=getProjects()")
 should be [empty](- "c:assert-true=#projects.empty").
@@ -19,7 +19,7 @@ The [current user's projects](- "#projects=getProjects()")
 now should consist of [1](- "?=#projects.size") project,
 which is [equal to the created one](- "c:assert-true= #projects[0] == #project").
 
-When authenticated as [ ](- "c:echo=switchUser('peter@example.com')"), the current user
+When authenticated as [ ](- "c:echo=switchUser('peter')"), the current user
 [should not have access](- "c:assert-true=403==tryGetProjectById(#project.id).statusCode")
 to the created project. Their [projects](- "#projects2=getProjects()")
 shall be [empty](- "c:assert-true=#projects2.empty").
