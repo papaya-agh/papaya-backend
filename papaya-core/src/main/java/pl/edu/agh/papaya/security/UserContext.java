@@ -8,8 +8,12 @@ import pl.edu.agh.papaya.model.User;
 @Component
 public class UserContext {
 
+    public Long getUserIdn() {
+        return getUser().getId();
+    }
+
     public String getUserId() {
-        return getUser().getId().toString();
+        return getUserIdn().toString();
     }
 
     public Long getUserIdn() {

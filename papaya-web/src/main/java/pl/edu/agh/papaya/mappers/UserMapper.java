@@ -7,11 +7,12 @@ import pl.edu.agh.papaya.model.User;
 @Component
 public class UserMapper implements Mapper<User, UserDto> {
 
+    @Override
     public UserDto mapToApi(User user) {
         return new UserDto()
                 .id(user.getId())
-                .email(user.getEmail())
                 .firstName(user.getFirstName())
-                .lastName(user.getLastName());
+                .lastName(user.getLastName())
+                .email(user.getEmail());
     }
 }
