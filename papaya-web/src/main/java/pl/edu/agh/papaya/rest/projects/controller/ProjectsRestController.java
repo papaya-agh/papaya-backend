@@ -9,6 +9,7 @@ import pl.edu.agh.papaya.api.model.ProjectDto;
 import pl.edu.agh.papaya.api.model.ProjectMemberDto;
 import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.api.model.SprintStateDto;
+import pl.edu.agh.papaya.api.model.SprintSummaryDto;
 import pl.edu.agh.papaya.api.model.UserIdentificationDto;
 import pl.edu.agh.papaya.api.model.UserRoleDto;
 import pl.edu.agh.papaya.api.service.ProjectsApi;
@@ -84,15 +85,20 @@ public class ProjectsRestController implements ProjectsApi {
 
     @Override
     public ResponseEntity<SprintDto> addSprint(SprintDto sprintDto, Long projectId) {
-        return projectsRestService.addSprint(sprintDto, projectId);
+        return sprintsRestService.addSprint(sprintDto, projectId);
     }
 
     @Override
     public ResponseEntity<SprintDto> modifySprint(SprintDto sprintDto, Long projectId, Long sprintId) {
-        return projectsRestService.modifySprint(sprintDto, projectId, sprintId);
+        return sprintsRestService.modifySprint(sprintDto, projectId, sprintId);
     }
 
     public ResponseEntity<List<ProjectMemberDto>> getUsersFromProject(Long projectId) {
         return projectsRestService.getUsersFromProject(projectId);
+    }
+
+    @Override
+    public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId) {
+        return sprintsRestService.getSprintSummary(projectId, sprintId);
     }
 }

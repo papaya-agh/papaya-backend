@@ -4,10 +4,12 @@ import java.time.DateTimeException
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import org.springframework.context.annotation.ComponentScan
 import pl.edu.agh.papaya.TestUtils
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@ComponentScan('pl.edu.agh.papaya')
 class LocalDateTimePeriodSpec extends Specification {
 
     @Unroll

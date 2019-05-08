@@ -13,7 +13,7 @@ public interface AvailabilityRepository extends CrudRepository<Availability, Lon
 
     Optional<Availability> findByUserInProjectAndSprint(UserInProject userInProject, Sprint sprint);
 
-    List<Availability> findBySprint(Sprint sprint);
+    List<Availability> findBySprintId(Long sprintId);
 
     Optional<Availability> findBySprintIdAndUserInProjectUserId(Long sprintId, Long userId);
 }
