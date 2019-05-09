@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
@@ -64,17 +66,6 @@ public class ProjectService {
                 .anyMatch(userId::equals);
     }
 
-    public boolean isUserInProject(Project project, User user) {
-        return isUserInProject(project, user.getId().toString());
-    }
-
-    public boolean isAdmin(Project project, User user) {
-        Optional<UserInProject> userInProject = getUserInProject(project, user);
-        return userInProject
-                .map(inProject -> inProject.getUserRole().equals(UserRole.ADMIN))
-                .orElse(false);
-    }
-
     public ProjectCreationWizard newProject() {
         return new ProjectCreationWizard(this);
     }
@@ -88,11 +79,21 @@ public class ProjectService {
         return project;
     }
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void setUserRole(Project project, User user, UserRole role) {
         validateCurrentUserAdmin(project);
 
-        UserInProject userInProject = new UserInProject(project, user, role);
-        userInProjectRepository.save(userInProject);
+        Optional<UserInProject> existing =
+                userInProjectRepository.findByProjectIdAndUserId(project.getId(), user.getId());
+
+        if (existing.isPresent()) {
+            if (existing.get().getUserRole() != role) {
+                userInProjectRepository.updateUserRole(project, user, role);
+            }
+        } else {
+            UserInProject userInProject = new UserInProject(project, user, role);
+            userInProjectRepository.save(userInProject);
+        }
     }
 
     private void validateCurrentUserAdmin(Project project) {

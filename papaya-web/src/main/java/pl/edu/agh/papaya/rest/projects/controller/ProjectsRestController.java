@@ -1,7 +1,6 @@
 package pl.edu.agh.papaya.rest.projects.controller;
 
 import java.util.List;
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,6 +12,7 @@ import pl.edu.agh.papaya.api.model.SprintStateDto;
 import pl.edu.agh.papaya.api.model.UserIdentificationDto;
 import pl.edu.agh.papaya.api.model.UserRoleDto;
 import pl.edu.agh.papaya.api.service.ProjectsApi;
+import pl.edu.agh.papaya.rest.projects.service.AvailabilityRestService;
 import pl.edu.agh.papaya.rest.projects.service.ProjectsRestService;
 import pl.edu.agh.papaya.rest.projects.service.SprintsRestService;
 import pl.edu.agh.papaya.util.BadRequestException;
@@ -23,6 +23,8 @@ import pl.edu.agh.papaya.util.BadRequestException;
 public class ProjectsRestController implements ProjectsApi {
 
     private final ProjectsRestService projectsRestService;
+
+    private final AvailabilityRestService availabilityRestService;
 
     private final SprintsRestService sprintsRestService;
 
@@ -72,47 +74,25 @@ public class ProjectsRestController implements ProjectsApi {
 
     @Override
     public ResponseEntity<AvailabilityDto> getUserAvailability(Long projectId, Long sprintId) {
-        return projectsRestService.getUserAvailability(projectId, sprintId);
+        return availabilityRestService.getUserAvailability(projectId, sprintId);
     }
 
     @Override
     public ResponseEntity<AvailabilityDto> updateUserAvailability(AvailabilityDto body, Long projectId, Long sprintId) {
-        return projectsRestService.updateUserAvailability(body, projectId, sprintId);
+        return availabilityRestService.updateUserAvailability(body, projectId, sprintId);
     }
 
     @Override
-    public ResponseEntity<List<SprintDto>> getSprints(Long projectId, @Valid List<SprintStateDto> sprintStateDtos) {
-        return projectsRestService.getSprints(projectId, sprintStateDtos);
-    }
-
-    @Override
-    public ResponseEntity<SprintDto> addSprint(@Valid SprintDto sprintDto, Long projectId) {
+    public ResponseEntity<SprintDto> addSprint(SprintDto sprintDto, Long projectId) {
         return projectsRestService.addSprint(sprintDto, projectId);
     }
 
     @Override
-    public ResponseEntity<SprintDto> modifySprint(@Valid SprintDto sprintDto, Long projectId, Long sprintId) {
+    public ResponseEntity<SprintDto> modifySprint(SprintDto sprintDto, Long projectId, Long sprintId) {
         return projectsRestService.modifySprint(sprintDto, projectId, sprintId);
     }
 
-    public ResponseEntity<List<UserInProjectDto>> getUsersFromProject(Long projectId) {
+    public ResponseEntity<List<ProjectMemberDto>> getUsersFromProject(Long projectId) {
         return projectsRestService.getUsersFromProject(projectId);
-    }
-
-    @Override
-    public ResponseEntity<Void> removeUser(Long projectId, String userId) {
-        return projectsRestService.removeUser(projectId, userId);
-    }
-
-    @Override
-    public ResponseEntity<UserInProjectDto> setUserRole(UserInProjectDto userInProject, Long projectId, String
-            userId) {
-        return projectsRestService.setUserRole(userInProject, projectId, userId);
-    }
-
-    @Override
-    public ResponseEntity<List<SprintDto>> getSprints(Long
-            projectId, @Valid List<SprintStateDto> sprintStateDtos) {
-        return sprintsRestService.getSprints(projectId, sprintStateDtos);
     }
 }
