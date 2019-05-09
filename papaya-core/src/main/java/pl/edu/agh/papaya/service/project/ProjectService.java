@@ -48,6 +48,10 @@ public class ProjectService {
         return projectRepository.findByUserId(parsedUserId);
     }
 
+    public Optional<UserInProject> getUserInProject(Project project, User user) {
+        return userInProjectRepository.findByProjectIdAndUserId(project.getId(), user.getId());
+    }
+
     public boolean isUserInProject(Project project, String userId) {
         return userInProjectRepository.findByProject(project)
                 .stream()
@@ -55,6 +59,17 @@ public class ProjectService {
                 .map(User::getId)
                 .map(Object::toString)
                 .anyMatch(userId::equals);
+    }
+
+    public boolean isUserInProject(Project project, User user) {
+        return isUserInProject(project, user.getId().toString());
+    }
+
+    public boolean isAdmin(Project project, User user) {
+        Optional<UserInProject> userInProject = getUserInProject(project, user);
+        return userInProject
+                .map(inProject -> inProject.getUserRole().equals(UserRole.ADMIN))
+                .orElse(false);
     }
 
     public ProjectCreationWizard newProject() {

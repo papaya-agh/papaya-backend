@@ -31,7 +31,7 @@ dependencies {
     compile project(':papaya-core')
     compile 'com.google.guava:guava:27.1-jre'
     annotationProcessor 'org.immutables:value:2.7.5'
-    implementation group: 'com.github.papaya-agh', name: 'papaya-interface', version: 'master-SNAPSHOT',
+    implementation group: 'com.github.papaya-agh', name: 'papaya-interface', version: 'IO2019TEAM-59-SNAPSHOT',
             changing: true
     annotationProcessor 'org.projectlombok:lombok'
     compile 'com.github.javafaker:javafaker:0.17.2'

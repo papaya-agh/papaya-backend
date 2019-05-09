@@ -1,5 +1,6 @@
 package pl.edu.agh.papaya.service.sprint;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
@@ -28,10 +29,6 @@ public class SprintService {
         sprintStateQueries.put(SprintState.IN_PROGRESS, sprintRepository::findInProgress);
         sprintStateQueries.put(SprintState.FINISHED, sprintRepository::findFinished);
         sprintStateQueries.put(SprintState.CLOSED, sprintRepository::findClosed);
-    }
-
-    public Optional<Sprint> getById(Long id) {
-        return sprintRepository.findById(id);
     }
 
     public List<Sprint> getByState(SprintState sprintState) {
@@ -77,6 +74,33 @@ public class SprintService {
                 .stream()
                 .filter(sprint -> sprint.getProject().getId().equals(projectId))
                 .collect(Collectors.toList());
+    }
+
+    public SprintCreationWizard newSprint() {
+        return new SprintCreationWizard(this);
+    }
+
+    Sprint createSprint(Sprint sprint) {
+        sprintRepository.save(sprint);
+        return sprint;
+    }
+
+    public Optional<Sprint> getLastInProject(Long projectId) {
+        return sprintRepository.findLatestInProject(projectId);
+    }
+
+    public Sprint closeSprint(Sprint sprint, Duration timeBurned, Duration timePlanned, LocalDateTime dateClosed) {
+        sprint.setTimeBurned(timeBurned);
+        sprint.setTimePlanned(timePlanned);
+        sprint.setDateClosed(dateClosed);
+
+        sprintRepository.save(sprint);
+
+        return sprint;
+    }
+
+    public Optional<Sprint> getById(Long id) {
+        return sprintRepository.findById(id);
     }
 
     @FunctionalInterface
