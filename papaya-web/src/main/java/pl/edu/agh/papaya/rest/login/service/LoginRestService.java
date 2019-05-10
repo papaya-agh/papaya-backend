@@ -1,6 +1,6 @@
 package pl.edu.agh.papaya.rest.login.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -10,24 +10,20 @@ import pl.edu.agh.papaya.security.AuthenticationException;
 import pl.edu.agh.papaya.security.AuthenticationService;
 
 @Service
+@RequiredArgsConstructor
 public class LoginRestService {
 
-    @Autowired
-    private AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
 
     public ResponseEntity<LoginResult> requestLogin(LoginRequest request) {
-        String token;
-        LoginResult result = new LoginResult();
+        LoginResult result;
         try {
-            token = authenticationService.logIn(request.getUsername());
+            result = authenticationService.logIn(request.getUsername());
         } catch (AuthenticationException e) {
-            result.setValid(false);
-            result.setErrorMessage(e.getLocalizedMessage());
+            result = new LoginResult().valid(false)
+                    .errorMessage(e.getLocalizedMessage());
             return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
         }
-
-        result.setValid(true);
-        result.setToken(token);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

@@ -6,22 +6,22 @@ import java.util.Collections;
 import java.util.List;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import pl.edu.agh.papaya.api.model.LoginResult;
 import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.repository.UserRepository;
 
 @Service
+@RequiredArgsConstructor
 public class AuthenticationService {
 
-    @Autowired
-    private TokenRepository tokenRepository;
+    private final TokenRepository tokenRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     /**
      * Upon successful login, this method returns a generated bearer token, which shall be used as an authorization
@@ -34,7 +34,7 @@ public class AuthenticationService {
      * @throws pl.edu.agh.papaya.security.AuthenticationException when authentication fails
      */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    public String logIn(String username) throws AuthenticationException {
+    public LoginResult logIn(String username) throws AuthenticationException {
         validateEmail(username);
 
         User user = userRepository.findByEmail(username).orElseGet(() -> {
@@ -43,7 +43,9 @@ public class AuthenticationService {
             return newUser;
         });
 
-        return tokenRepository.newToken(toSpringUser(user));
+        return new LoginResult().valid(true)
+                .token(tokenRepository.newToken(toSpringUser(user)))
+                .userId(user.getId());
     }
 
     private User generateRandomUser(String username) {

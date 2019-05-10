@@ -56,6 +56,8 @@ public class ProjectsRestService {
                 .withName(projectDto.getName())
                 .withDescription(projectDto.getDescription())
                 .withInitialCoefficient(projectDto.getInitialCoefficient())
+                .withWebhook(projectDto.getWebhookUrl())
+                .withChannelName(projectDto.getChannelName())
                 .create();
         return ResponseEntity.ok(projectMapper.mapToApi(created));
     }

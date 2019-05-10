@@ -9,7 +9,7 @@ import pl.edu.agh.papaya.model.User;
 public class UserContext {
 
     public String getUserId() {
-        return getUser().getId().toString();
+        return getUserIdn().toString();
     }
 
     public Long getUserIdn() {

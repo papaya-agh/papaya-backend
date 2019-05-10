@@ -15,6 +15,7 @@ apply plugin: 'io.spring.dependency-management'
 bootJar {
     version = '0.0.1-SNAPSHOT'
 }
+
 sourceCompatibility = '11'
 
 repositories {
@@ -22,12 +23,16 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
-configurations.all { resolutionStrategy.cacheChangingModulesFor 0, 'seconds' }
+configurations {
+    all { resolutionStrategy.cacheChangingModulesFor 0, 'seconds' }
+    compileOnly { extendsFrom annotationProcessor }
+}
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-data-rest'
     compile 'org.springframework.boot:spring-boot-starter-security'
+    compile 'org.springframework.boot:spring-boot-starter-mail'
     compile project(':papaya-core')
     compile 'com.google.guava:guava:27.1-jre'
     annotationProcessor 'org.immutables:value:2.7.5'
@@ -36,12 +41,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     compile 'com.github.javafaker:javafaker:0.17.2'
     compile 'javax.mail:mail:1.4.7'
-}
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+    compile 'org.apache.httpcomponents:httpclient:4.5.8'
 }
 
 task stage(dependsOn: ['build', 'clean'])

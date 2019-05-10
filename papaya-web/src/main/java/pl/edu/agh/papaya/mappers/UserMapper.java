@@ -7,6 +7,7 @@ import pl.edu.agh.papaya.model.User;
 @Component
 public class UserMapper implements Mapper<User, UserDto> {
 
+    @Override
     public UserDto mapToApi(User user) {
         return new UserDto()
                 .id(user.getId())

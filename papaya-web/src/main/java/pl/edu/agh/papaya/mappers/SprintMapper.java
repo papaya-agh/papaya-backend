@@ -5,19 +5,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.model.Sprint;
 
 @Component
+@RequiredArgsConstructor
 public class SprintMapper implements Mapper<Sprint, SprintDto> {
 
-    @Autowired
-    private LocalDateTimePeriodMapper localDateTimePeriodMapper;
+    private final LocalDateTimePeriodMapper localDateTimePeriodMapper;
 
-    @Autowired
-    private SprintStateMapper sprintStateMapper;
+    private final SprintStateMapper sprintStateMapper;
 
     @Override
     public List<SprintDto> mapToApi(List<Sprint> modelItems) {

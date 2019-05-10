@@ -23,10 +23,6 @@ public class Notification extends BaseEntity {
     @JoinColumn(nullable = false)
     private Sprint sprint;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
-    private UserInProject userInProject;
-
     @Column(nullable = false)
     private LocalDateTime lastNotificationDate;
 

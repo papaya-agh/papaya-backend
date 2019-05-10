@@ -1,18 +1,17 @@
 package pl.edu.agh.papaya.mappers;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.papaya.api.model.ProjectMemberDto;
 import pl.edu.agh.papaya.model.UserInProject;
 
 @Component
+@RequiredArgsConstructor
 public class UserInProjectMapper implements Mapper<UserInProject, ProjectMemberDto> {
 
-    @Autowired
-    private UserRoleMapper userRoleMapper;
+    private final UserRoleMapper userRoleMapper;
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
     @Override
     public ProjectMemberDto mapToApi(UserInProject userInProject) {
