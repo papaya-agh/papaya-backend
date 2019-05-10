@@ -2,6 +2,7 @@ package pl.edu.agh.papaya.notification.message;
 
 import com.google.gson.JsonObject;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class WebhookMessage implements Message {
         }
         jsonObject.addProperty("text", getMessage());
         try {
-            var entity = new StringEntity(jsonObject.toString());
+            var entity = new StringEntity(jsonObject.toString(), StandardCharsets.UTF_8);
             httpPost.setEntity(entity);
             httpPost.setHeader("Content-type", "application/json");
             closeableHttpClient.execute(httpPost);
