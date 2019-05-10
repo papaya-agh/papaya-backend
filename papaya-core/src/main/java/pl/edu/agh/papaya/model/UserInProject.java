@@ -26,4 +26,8 @@ public class UserInProject extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(length = 8)
     private UserRole userRole;
+
+    public boolean isUserActive() {
+        return userRole != UserRole.INACTIVE;
+    }
 }

@@ -36,13 +36,13 @@ public class SprintsRestService {
 
     private final SprintMapper sprintMapper;
 
-    public ResponseEntity<List<SprintDto>> getSprints(Project project, @Valid List<SprintStateDto> sprintStateDtos) {
+    public ResponseEntity<List<SprintDto>> getSprints(Long projectId, List<SprintStateDto> sprintStateDtos) {
         final LocalDateTime currentTime = LocalDateTime.now();
 
         List<SprintState> sprintStates = sprintStateMapper.mapFromApi(
                 Optional.ofNullable(sprintStateDtos).orElse(ALL_SPRINT_STATE_DTOS));
 
-        List<SprintDto> sprints = sprintService.getByStatesInProject(sprintStates, project.getId(), currentTime)
+        List<SprintDto> sprints = sprintService.getByStatesInProject(sprintStates, projectId, currentTime)
                 .stream()
                 .sorted(Comparator.comparing(sprint -> sprint.getEnrollmentPeriod().getStart()))
                 .map(sprint -> sprintMapper.mapToApi(sprint, currentTime))

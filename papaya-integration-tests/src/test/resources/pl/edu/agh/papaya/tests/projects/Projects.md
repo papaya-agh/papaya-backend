@@ -23,3 +23,44 @@ When authenticated as [ ](- "c:echo=switchUser('peter')"), the current user
 [should not have access](- "c:assert-true=403==tryGetProjectById(#project.id).statusCode")
 to the created project. Their [projects](- "#projects2=getProjects()")
 shall be [empty](- "c:assert-true=#projects2.empty").
+
+## Adding users to the project
+
+Authenticating as [ ](- "c:echo=switchUser('heinz')").
+
+The user [ ](- "c:echo=describeUser('peter')")
+is [added to the project](- "addToProject(#project.id, 'peter')").
+
+Now, [ ](- "c:echo=switchUser('peter')") should
+[have access to the project](- "c:assert-true=200==tryGetProjectById(#project.id).statusCode").
+
+[It is not possible](- "c:assert-true=400==tryAddToProjectNonExistingUser(#project.id).statusCode")
+to add a non-existing user to the project.
+
+## Removing users from the project
+
+Authenticating as [ ](- "c:echo=switchUser('heinz')").
+
+The user [ ](- "c:echo=describeUser('peter')")
+is [removed from the project](- "removeFromProject(#project.id, 'peter')").
+
+When authenticated as [ ](- "c:echo=switchUser('peter')"), the current user
+[should not have access](- "c:assert-true=403==tryGetProjectById(#project.id).statusCode")
+to the created project. Their [projects](- "#projects2=getProjects()")
+shall be [empty](- "c:assert-true=#projects2.empty").
+
+### Non-admins cannot remove users from projects
+
+Authenticating as [ ](- "c:echo=switchUser('heinz')").
+
+The user [ ](- "c:echo=describeUser('peter')")
+is [added to the project](- "addToProject(#project.id, 'peter')").
+
+The user [ ](- "c:echo=describeUser('rick')")
+is [added to the project](- "addToProject(#project.id, 'rick')").
+
+When authenticated as [ ](- "c:echo=switchUser('rick')"), the current user
+[cannot remove](- "c:assert-true=403==tryRemoveFromProject(#project.id, 'peter').statusCode")
+other users. The current user also
+[cannot set roles](- "c:assert-true=403==trySetRoleInProject(#project.id, 'peter', 'ADMIN').statusCode")
+of other users.
