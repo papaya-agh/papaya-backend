@@ -18,7 +18,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @Configuration
-@ComponentScan
+@ComponentScan('pl.edu.agh.papaya')
 @EnableAutoConfiguration
 @EntityScan('pl.edu.agh.papaya.model')
 @EnableJpaRepositories('pl.edu.agh.papaya.repository')

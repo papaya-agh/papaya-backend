@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.api.model.ProjectDto;
 import pl.edu.agh.papaya.api.model.ProjectMemberDto;
-import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.api.model.UserIdentificationDto;
 import pl.edu.agh.papaya.api.model.UserRoleDto;
 import pl.edu.agh.papaya.mappers.ProjectMapper;
@@ -32,8 +31,6 @@ import pl.edu.agh.papaya.util.ResourceNotFoundException;
 @SuppressWarnings("checkstyle:ClassFanOutComplexity")
 @RequiredArgsConstructor
 public class ProjectsRestService {
-
-    private final SprintsRestService sprintsRestService;
 
     private final UserContext userContext;
 
@@ -148,25 +145,5 @@ public class ProjectsRestService {
         } catch (UserNotAuthorizedException e) {
             throw new ForbiddenAccessException(e);
         }
-    }
-
-    public ResponseEntity<SprintDto> addSprint(SprintDto sprintDto, Long projectId) {
-        Project project = getValidProject(projectId);
-
-        if (!project.isAdmin(userContext.getUser())) {
-            throw new ForbiddenAccessException();
-        }
-
-        return sprintsRestService.addSprint(project, sprintDto);
-    }
-
-    public ResponseEntity<SprintDto> modifySprint(SprintDto sprintDto, Long projectId, Long sprintId) {
-        Project project = getValidProject(projectId);
-
-        if (!project.isAdmin(userContext.getUser())) {
-            throw new ForbiddenAccessException();
-        }
-
-        return sprintsRestService.modifySprint(sprintId, sprintDto);
     }
 }

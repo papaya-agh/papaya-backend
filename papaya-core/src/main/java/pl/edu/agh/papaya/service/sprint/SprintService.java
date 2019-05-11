@@ -8,9 +8,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.papaya.model.Availability;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
 import pl.edu.agh.papaya.repository.SprintRepository;
+import pl.edu.agh.papaya.service.availability.AvailabilityService;
 
 @Service
 @SuppressWarnings({"PMD.BeanMembersShouldSerialize"})
@@ -20,9 +22,12 @@ public class SprintService {
 
     private final SprintRepository sprintRepository;
 
+    private final AvailabilityService availabilityService;
+
     @Autowired
-    public SprintService(SprintRepository sprintRepository) {
+    public SprintService(SprintRepository sprintRepository, AvailabilityService availabilityService) {
         this.sprintRepository = sprintRepository;
+        this.availabilityService = availabilityService;
         sprintStateQueries.put(SprintState.UPCOMING, sprintRepository::findUpcoming);
         sprintStateQueries.put(SprintState.DECLARABLE, sprintRepository::findDeclarable);
         sprintStateQueries.put(SprintState.PADDING, sprintRepository::findPadding);
@@ -101,6 +106,13 @@ public class SprintService {
 
     public Optional<Sprint> getById(Long id) {
         return sprintRepository.findById(id);
+    }
+
+    public Duration getTotalAvailableTimeBySprintId(Long sprintId) {
+        return availabilityService.getBySprintId(sprintId)
+                .stream()
+                .map(Availability::getTimeAvailable)
+                .reduce(Duration.ZERO, Duration::plus);
     }
 
     @FunctionalInterface

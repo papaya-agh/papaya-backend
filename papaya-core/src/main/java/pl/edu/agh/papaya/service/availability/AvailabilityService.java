@@ -1,5 +1,6 @@
 package pl.edu.agh.papaya.service.availability;
 
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,10 @@ public class AvailabilityService {
 
     public Optional<Availability> getBySprintIdAndUserId(Long sprintId, Long userId) {
         return availabilityRepository.findBySprintIdAndUserInProjectUserId(sprintId, userId);
+    }
+
+    public List<Availability> getBySprintId(Long sprintId) {
+        return availabilityRepository.findBySprintId(sprintId);
     }
 
     public AvailabilityCreationWizard newAvailability() {
