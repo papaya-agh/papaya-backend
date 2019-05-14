@@ -162,6 +162,6 @@ public class SprintsRestService {
 
     public boolean isInOverlapWithLastSprint(Project project, LocalDateTimePeriod durationPeriod) {
         Optional<Sprint> lastSprintOpt = sprintService.getLastInProject(project.getId());
-        return lastSprintOpt.isEmpty() || durationPeriod.isAfter(lastSprintOpt.get().getDurationPeriod());
+        return lastSprintOpt.isPresent() && !durationPeriod.isAfter(lastSprintOpt.get().getDurationPeriod());
     }
 }
