@@ -113,7 +113,7 @@ public class SprintsRestService {
         Sprint sprint = getValidSprint(sprintId);
         Project project = projectsRestService.getValidProject(projectId);
 
-        if (project.isAdmin(userContext.getUser())) {
+        if (!project.isAdmin(userContext.getUser())) {
             throw new ForbiddenAccessException();
         }
 
