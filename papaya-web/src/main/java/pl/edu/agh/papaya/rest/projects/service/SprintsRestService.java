@@ -123,8 +123,11 @@ public class SprintsRestService {
                 .map(Availability::getTimeAvailable)
                 .reduce(Duration.ZERO, Duration::plus);
 
-        //to be expanded in issue IO2019TEAM-100
-        double coefficient = sprint.getTimePlanned().dividedBy(sprint.getTimeBurned());
+        // to be expanded in issue IO2019TEAM-100
+        double coefficient = Optional.ofNullable(sprint.getTimeBurned())
+                .filter(timeBurned -> !Duration.ZERO.equals(timeBurned))
+                .map(timeBurned -> (double) sprint.getTimePlanned().toMinutes() / timeBurned.toMinutes())
+                .orElse(0.d);
 
         return ResponseEntity.ok(new SprintSummaryDto().membersAvailability(userAvailabilityDtos)
                 .totalAvailableTime(totalAvailableTime.toMinutes())
