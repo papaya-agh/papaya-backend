@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -66,7 +65,7 @@ public class SprintsRestService {
         return ResponseEntity.ok(sprints);
     }
 
-    public ResponseEntity<SprintDto> addSprint(@Valid SprintDto sprintDto, Long projectId) {
+    public ResponseEntity<SprintDto> addSprint(SprintDto sprintDto, Long projectId) {
         Project project = projectsRestService.getValidProject(projectId);
 
         if (!project.isAdmin(userContext.getUser())) {
@@ -80,14 +79,11 @@ public class SprintsRestService {
             throw new IllegalStateException("Cannot create sprint starting before the last one ended");
         }
 
-        @SuppressWarnings({"MultipleStringLiterals"})
-        Long timePlanned = AssertionUtil.requireNonNegative("timePlanned", sprintDto.getTimePlanned());
-
         Sprint created = sprintService.newSprint()
                 .withProject(project)
                 .withEnrollmentPeriod(enrollmentPeriod)
                 .withDurationPeriod(durationPeriod)
-                .withTimePlanned(Duration.ofMinutes(timePlanned))
+                .withTimePlanned(Duration.ofMinutes(0L))
                 .create();
         return ResponseEntity.ok(sprintMapper.mapToApi(created));
     }
@@ -165,6 +161,6 @@ public class SprintsRestService {
 
     public boolean isInOverlapWithLastSprint(Project project, LocalDateTimePeriod durationPeriod) {
         Optional<Sprint> lastSprintOpt = sprintService.getLastInProject(project.getId());
-        return lastSprintOpt.isPresent() && !durationPeriod.isAfter(lastSprintOpt.get().getDurationPeriod());
+        return lastSprintOpt.isPresent() && durationPeriod.isBefore(lastSprintOpt.get().getDurationPeriod());
     }
 }

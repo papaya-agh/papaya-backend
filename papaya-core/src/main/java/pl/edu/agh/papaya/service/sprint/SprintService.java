@@ -91,7 +91,7 @@ public class SprintService {
     }
 
     public Optional<Sprint> getLastInProject(Long projectId) {
-        return sprintRepository.findLatestInProject(projectId);
+        return sprintRepository.findFirstByProjectIdOrderByDurationPeriodStart(projectId);
     }
 
     public Sprint closeSprint(Sprint sprint, Duration timeBurned, Duration timePlanned, LocalDateTime dateClosed) {
