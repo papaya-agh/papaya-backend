@@ -24,6 +24,7 @@ import pl.edu.agh.papaya.security.UserNotAuthorizedException;
 import pl.edu.agh.papaya.service.project.ProjectService;
 import pl.edu.agh.papaya.service.user.UserService;
 import pl.edu.agh.papaya.util.BadRequestException;
+import pl.edu.agh.papaya.util.ConflictException;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
 import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
@@ -65,6 +66,10 @@ public class ProjectsRestService {
 
         Project project = projectService.getProjectById(projectId)
                 .orElseThrow(ResourceNotFoundException::new);
+
+        if (projectService.isUserInProject(project, user.getId().toString())) {
+            throw new ConflictException("Requested user is already in project");
+        }
 
         try {
             projectService.setUserRole(project, user, UserRole.MEMBER);
