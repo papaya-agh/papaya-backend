@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.papaya.api.model.UserAvailabilityDto;
 import pl.edu.agh.papaya.model.Availability;
+import pl.edu.agh.papaya.model.User;
 
 @Component
 @RequiredArgsConstructor
@@ -19,5 +20,9 @@ public class UserAvailabilityMapper implements Mapper<Availability, UserAvailabi
                         .getUserInProject()
                         .getUser()
                         .getId());
+    }
+
+    public UserAvailabilityDto emptyAvailability(User user) {
+        return new UserAvailabilityDto().userId(user.getId());
     }
 }

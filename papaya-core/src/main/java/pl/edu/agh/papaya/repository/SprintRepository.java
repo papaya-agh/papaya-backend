@@ -32,5 +32,5 @@ public interface SprintRepository extends CrudRepository<Sprint, Long> {
     @Query("select s from Sprint s where s.dateClosed is null or s.dateClosed > ?1")
     List<Sprint> findNotClosed(LocalDateTime localDateTime);
 
-    Optional<Sprint> findFirstByProjectIdOrderByDurationPeriodStart(Long projectId);
+    Optional<Sprint> findFirstByProjectIdOrderByDurationPeriodStartDesc(Long projectId);
 }

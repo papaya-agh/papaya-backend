@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,8 @@ import pl.edu.agh.papaya.model.LocalDateTimePeriod;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
+import pl.edu.agh.papaya.model.User;
+import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.service.sprint.SprintService;
 import pl.edu.agh.papaya.util.AssertionUtil;
@@ -114,7 +117,8 @@ public class SprintsRestService {
         }
 
         List<Availability> availabilities = sprint.getAvailabilities();
-        List<UserAvailabilityDto> userAvailabilityDtos = userAvailabilityMapper.mapToApi(availabilities);
+        List<UserAvailabilityDto> userAvailabilityDtos = getUserAvailabilityDtos(project, availabilities);
+
         Duration totalAvailableTime = availabilities.stream()
                 .map(Availability::getTimeAvailable)
                 .reduce(Duration.ZERO, Duration::plus);
@@ -125,10 +129,32 @@ public class SprintsRestService {
                 .map(timeBurned -> (double) sprint.getTimePlanned().toMinutes() / timeBurned.toMinutes())
                 .orElse(0.d);
 
-        return ResponseEntity.ok(new SprintSummaryDto().membersAvailability(userAvailabilityDtos)
+        return ResponseEntity.ok(createSprintSummaryDto(userAvailabilityDtos, totalAvailableTime, coefficient));
+    }
+
+    private SprintSummaryDto createSprintSummaryDto(List<UserAvailabilityDto> userAvailabilityDtos,
+            Duration totalAvailableTime, double coefficient) {
+        return new SprintSummaryDto().membersAvailability(userAvailabilityDtos)
                 .totalAvailableTime(totalAvailableTime.toMinutes())
-                .sprintCoefficient(coefficient)
-        );
+                .sprintCoefficient(coefficient);
+    }
+
+    private List<UserAvailabilityDto> getUserAvailabilityDtos(Project project, List<Availability> availabilities) {
+        List<UserAvailabilityDto> usersWithNoAvailabilities = getUsersWithNoAvailabilities(project, availabilities);
+        List<UserAvailabilityDto> usersWithAvailabilities = userAvailabilityMapper.mapToApi(availabilities);
+        return Stream.concat(usersWithAvailabilities.stream(), usersWithNoAvailabilities.stream())
+                .collect(Collectors.toList());
+    }
+
+    private List<UserAvailabilityDto> getUsersWithNoAvailabilities(Project project, List<Availability> availabilities) {
+        List<User> users = project.getUsersInProject().stream()
+                .map(UserInProject::getUser)
+                .collect(Collectors.toList());
+
+        return users.stream()
+                .filter(user -> availabilities.stream()
+                        .noneMatch(availability -> user.equals(availability.getUserInProject().getUser())))
+                .map(userAvailabilityMapper::emptyAvailability).collect(Collectors.toList());
     }
 
     public ResponseEntity<SprintDto> modifySprint(SprintDto sprintDto, Long projectId, Long sprintId) {
@@ -159,7 +185,7 @@ public class SprintsRestService {
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
-    public boolean isInOverlapWithLastSprint(Project project, LocalDateTimePeriod durationPeriod) {
+    private boolean isInOverlapWithLastSprint(Project project, LocalDateTimePeriod durationPeriod) {
         Optional<Sprint> lastSprintOpt = sprintService.getLastInProject(project.getId());
         return lastSprintOpt.isPresent() && durationPeriod.isBefore(lastSprintOpt.get().getDurationPeriod());
     }
