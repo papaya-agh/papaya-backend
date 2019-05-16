@@ -36,8 +36,17 @@ public class SprintMapper implements Mapper<Sprint, SprintDto> {
                 .enrollmentPeriod(localDateTimePeriodMapper.mapToApi(modelSprint.getEnrollmentPeriod()))
                 .durationPeriod(localDateTimePeriodMapper.mapToApi(modelSprint.getDurationPeriod()))
                 .dateClosed(modelSprint.getDateClosed())
-                .timeBurned(Optional.ofNullable(modelSprint.getTimeBurned()).map(Duration::toMinutes).orElse(null))
-                .timePlanned(Optional.ofNullable(modelSprint.getTimePlanned()).map(Duration::toMinutes).orElse(null))
+                .timeBurned(Optional.ofNullable(modelSprint.getStats().getTimeBurned())
+                        .map(Duration::toMinutes)
+                        .orElse(null))
+                .estimatedTimePlanned(Optional.ofNullable(modelSprint.getStats().getEstimatedTimePlanned())
+                        .map(Duration::toMinutes)
+                        .orElse(null))
+                .finalTimePlanned(
+                        Optional.ofNullable(modelSprint.getStats().getFinalTimePlanned())
+                                .map(Duration::toMinutes)
+                                .orElse(null))
+                .coefficient(modelSprint.getStats().getCoefficient())
                 .sprintState(sprintStateMapper.mapToApi(modelSprint.getSprintState(evaluationTime)));
     }
 

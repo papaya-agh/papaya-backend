@@ -34,13 +34,6 @@ public class Project extends BaseEntity {
 
     private String channelName;
 
-    public Optional<UserRole> getUserRoleInProject(User user) {
-        return usersInProject.stream()
-                .filter(up -> up.getUser().getId().equals(user.getId()))
-                .findAny()
-                .map(UserInProject::getUserRole);
-    }
-
     public boolean isAdmin(User user) {
         return hasRole(user, UserRole.ADMIN);
     }
@@ -49,5 +42,12 @@ public class Project extends BaseEntity {
         return getUserRoleInProject(user)
                 .map(role::equals)
                 .orElse(false);
+    }
+
+    public Optional<UserRole> getUserRoleInProject(User user) {
+        return usersInProject.stream()
+                .filter(up -> up.getUser().getId().equals(user.getId()))
+                .findAny()
+                .map(UserInProject::getUserRole);
     }
 }

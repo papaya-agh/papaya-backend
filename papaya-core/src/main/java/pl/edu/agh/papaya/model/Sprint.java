@@ -20,6 +20,8 @@ import lombok.Setter;
 @Entity
 public class Sprint extends BaseEntity {
 
+    private final SprintStats stats = new SprintStats();
+
     @ManyToOne
     @JoinColumn(nullable = false)
     private Project project;
@@ -29,10 +31,6 @@ public class Sprint extends BaseEntity {
     private LocalDateTimePeriod enrollmentPeriod;
 
     private LocalDateTime dateClosed;
-
-    private Duration timeBurned;
-
-    private Duration timePlanned;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint")
     private List<Availability> availabilities;
@@ -58,5 +56,49 @@ public class Sprint extends BaseEntity {
             sprintState = SprintState.FINISHED;
         }
         return sprintState;
+    }
+
+    public Duration getTimeBurned() {
+        return stats.getTimeBurned();
+    }
+
+    public void setTimeBurned(Duration timeBurned) {
+        stats.setTimeBurned(timeBurned);
+    }
+
+    public Duration getEstimatedTimePlanned() {
+        return stats.getEstimatedTimePlanned();
+    }
+
+    public void setEstimatedTimePlanned(Duration estimatedTimePlanned) {
+        stats.setEstimatedTimePlanned(estimatedTimePlanned);
+    }
+
+    public Duration getFinalTimePlanned() {
+        return stats.getFinalTimePlanned();
+    }
+
+    public void setFinalTimePlanned(Duration finalTimePlanned) {
+        stats.setFinalTimePlanned(finalTimePlanned);
+    }
+
+    public Double getCoefficient() {
+        return stats.getCoefficient();
+    }
+
+    public void setCoefficient(Double coefficient) {
+        stats.setCoefficient(coefficient);
+    }
+
+    public Double getAverageCoefficientCache() {
+        return stats.getAverageCoefficientCache();
+    }
+
+    public void setAverageCoefficientCache(Double coefficient) {
+        stats.setAverageCoefficientCache(coefficient);
+    }
+
+    public void updateCoefficient(Duration totalDeclaredTime) {
+        stats.updateCoefficient(totalDeclaredTime);
     }
 }

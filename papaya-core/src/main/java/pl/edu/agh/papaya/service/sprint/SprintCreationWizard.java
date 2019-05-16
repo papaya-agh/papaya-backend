@@ -1,6 +1,5 @@
 package pl.edu.agh.papaya.service.sprint;
 
-import java.time.Duration;
 import java.util.Objects;
 import pl.edu.agh.papaya.model.LocalDateTimePeriod;
 import pl.edu.agh.papaya.model.Project;
@@ -15,7 +14,6 @@ public class SprintCreationWizard {
     private Project project;
     private LocalDateTimePeriod enrollmentPeriod;
     private LocalDateTimePeriod durationPeriod;
-    private Duration timePlanned;
 
     SprintCreationWizard(SprintService sprintService) {
         this.sprintService = Objects.requireNonNull(sprintService);
@@ -36,11 +34,6 @@ public class SprintCreationWizard {
         return this;
     }
 
-    public SprintCreationWizard withTimePlanned(Duration timePlanned) {
-        this.timePlanned = Objects.requireNonNull(timePlanned);
-        return this;
-    }
-
     public Sprint create() {
         Sprint sprint = new Sprint();
 
@@ -52,8 +45,6 @@ public class SprintCreationWizard {
         sprint.setDurationPeriod(AssertionUtil.require("durationPeriod", durationPeriod));
         sprint.setEnrollmentPeriod(AssertionUtil.require("enrollmentPeriod", enrollmentPeriod));
         sprint.setDateClosed(null);
-        sprint.setTimeBurned(null);
-        sprint.setTimePlanned(AssertionUtil.require("timePlanned", timePlanned));
 
         return sprintService.createSprint(sprint);
     }

@@ -94,25 +94,54 @@ public class SprintService {
         return sprintRepository.findFirstByProjectIdOrderByDurationPeriodStartDesc(projectId);
     }
 
-    public Sprint closeSprint(Sprint sprint, Duration timeBurned, Duration timePlanned, LocalDateTime dateClosed) {
-        sprint.setTimeBurned(timeBurned);
-        sprint.setTimePlanned(timePlanned);
+    public Sprint closeSprint(Sprint sprint, Duration timeBurned, Duration estimatedTimePlanned,
+            Duration finalTimePlanned, LocalDateTime dateClosed) {
         sprint.setDateClosed(dateClosed);
+        updateSprintStats(sprint, estimatedTimePlanned, finalTimePlanned, timeBurned);
 
         sprintRepository.save(sprint);
 
         return sprint;
     }
 
+    public void updateSprintStats(Sprint sprint, Duration estimatedTimePlanned, Duration finalTimePlanned,
+            Duration timeBurned) {
+
+        sprint.setEstimatedTimePlanned(estimatedTimePlanned);
+        sprint.setFinalTimePlanned(finalTimePlanned);
+        sprint.setTimeBurned(timeBurned);
+
+        Duration totalDeclaredTime = getTotalDeclaredTimeBySprint(sprint);
+        sprint.updateCoefficient(totalDeclaredTime);
+
+        sprint.setAverageCoefficientCache(computeAvarageSprintCoefficient(sprint));
+    }
+
+    private Double computeAvarageSprintCoefficient(Sprint sprint) {
+        // date after start of this sprint because this one also has to be included
+        return sprintRepository.findAverageSprintCoefficientUpToDate(sprint.getDurationPeriod().getEnd())
+                .orElseGet(() -> getDefaultSprintCoefficient(sprint));
+    }
+
+    private double getDefaultSprintCoefficient(Sprint sprint) {
+        return sprint.getProject().getInitialCoefficient();
+    }
+
+    public Duration getTotalDeclaredTimeBySprint(Sprint sprint) {
+        return availabilityService.getBySprintId(sprint.getId())
+                .stream()
+                .map(Availability::getTimeAvailable)
+                .reduce(Duration.ZERO, Duration::plus);
+    }
+
     public Optional<Sprint> getById(Long id) {
         return sprintRepository.findById(id);
     }
 
-    public Duration getTotalAvailableTimeBySprintId(Long sprintId) {
-        return availabilityService.getBySprintId(sprintId)
-                .stream()
-                .map(Availability::getTimeAvailable)
-                .reduce(Duration.ZERO, Duration::plus);
+    public double getPrevSprintAverageCoefficient(Sprint sprint) {
+        return sprintRepository.findPreceding(sprint)
+                .map(Sprint::getAverageCoefficientCache)
+                .orElseGet(() -> getDefaultSprintCoefficient(sprint));
     }
 
     @FunctionalInterface
