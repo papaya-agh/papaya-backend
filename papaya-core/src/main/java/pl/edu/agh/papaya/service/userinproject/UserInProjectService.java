@@ -16,7 +16,7 @@ public class UserInProjectService {
 
     private final UserInProjectRepository userInProjectRepository;
 
-    public Optional<UserInProject> getByProjectIdAndUserId(Long projectId, Long userId) {
+    public Optional<UserInProject> getByProjectIdAndUserId(Long projectId, String userId) {
         return userInProjectRepository.findByProjectIdAndUserId(projectId, userId);
     }
 

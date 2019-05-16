@@ -4,7 +4,6 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.papaya.api.client.ApiClient;
-import pl.edu.agh.papaya.api.client.service.LoginApi;
 import pl.edu.agh.papaya.api.client.service.ProjectsApi;
 
 /**
@@ -17,11 +16,6 @@ public class ClientApiProvider {
 
     @LocalServerPort
     private int port;
-
-    @Bean
-    public LoginApi loginApi() {
-        return new LoginApi(getApiClient());
-    }
 
     public ApiClient getApiClient() {
         if (apiClient == null) {

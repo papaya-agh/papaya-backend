@@ -21,11 +21,13 @@ import pl.edu.agh.papaya.notification.message.Message;
 import pl.edu.agh.papaya.notification.message.WebhookMessage;
 import pl.edu.agh.papaya.repository.AvailabilityRepository;
 import pl.edu.agh.papaya.repository.NotificationRepository;
+import pl.edu.agh.papaya.security.User;
+import pl.edu.agh.papaya.security.UserService;
 import pl.edu.agh.papaya.service.sprint.SprintService;
 import pl.edu.agh.papaya.service.userinproject.UserInProjectService;
 
 @Service
-@SuppressWarnings({"PMD.BeanMembersShouldSerialize"})
+@SuppressWarnings({"PMD.BeanMembersShouldSerialize", "ClassFanOutComplexity"})
 public final class NotificationService {
 
     private final SprintService sprintService;
@@ -38,18 +40,21 @@ public final class NotificationService {
 
     private final JavaMailSender javaMailSender;
 
+    private final UserService userService;
+
     @Value("${notifications.frequency.minutes:1440}")
-    private Integer notificationFrequency;
+    private transient Integer notificationFrequency;
 
     @Autowired
     public NotificationService(SprintService sprintService, UserInProjectService userInProjectService,
             NotificationRepository notificationRepository, AvailabilityRepository availabilityRepository,
-            JavaMailSender javaMailSender) {
+            JavaMailSender javaMailSender, UserService userService) {
         this.sprintService = sprintService;
         this.userInProjectService = userInProjectService;
         this.notificationRepository = notificationRepository;
         this.availabilityRepository = availabilityRepository;
         this.javaMailSender = javaMailSender;
+        this.userService = userService;
     }
 
     @Scheduled(cron = "${notifications.cron.trigger:-}")
@@ -92,7 +97,7 @@ public final class NotificationService {
         Message message = null;
         if (!usersWhoMissedDeadline.isEmpty()) {
             if (notificationStrategy.equals(NotificationStrategy.EMAIL)) {
-                message = new EmailMessage(javaMailSender, usersWhoMissedDeadline, sprint,
+                message = new EmailMessage(javaMailSender, getUsers(usersWhoMissedDeadline), sprint,
                         NotificationType.SPRINT_ENROLLMENT_CLOSED);
             } else {
                 message = new WebhookMessage(sprint, NotificationType.SPRINT_ENROLLMENT_CLOSED);
@@ -135,6 +140,14 @@ public final class NotificationService {
         });
     }
 
+    private List<User> getUsers(List<UserInProject> usersInProject) {
+        return usersInProject.stream()
+                .map(UserInProject::getUserId)
+                .map(userService::getUserById)
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
+    }
+
     private Optional<Message> createDeclarableMessage(LocalDateTime currentTime, Sprint sprint,
             List<UserInProject> usersInProject, NotificationStrategy notificationStrategy) {
         Notification lastNotification = Iterables.getLast(notificationRepository.findSprintNotifications(sprint), null);
@@ -143,7 +156,7 @@ public final class NotificationService {
 
         if (lastNotification == null) {
             if (notificationStrategy.equals(NotificationStrategy.EMAIL)) {
-                message = new EmailMessage(javaMailSender, usersInProject, sprint,
+                message = new EmailMessage(javaMailSender, getUsers(usersInProject), sprint,
                         NotificationType.SPRINT_ENROLLMENT_OPENED);
             } else {
                 message = new WebhookMessage(sprint, NotificationType.SPRINT_ENROLLMENT_OPENED);
@@ -162,7 +175,7 @@ public final class NotificationService {
 
     private Message createReminderMessage(Sprint sprint, List<UserInProject> usersInProject) {
         List<UserInProject> usersWithoutDeclaration = getMembersWithoutDeclarations(sprint, usersInProject);
-        return new EmailMessage(javaMailSender, usersWithoutDeclaration, sprint,
+        return new EmailMessage(javaMailSender, getUsers(usersWithoutDeclaration), sprint,
                 NotificationType.SPRINT_ENROLLMENT_REMINDER);
     }
 

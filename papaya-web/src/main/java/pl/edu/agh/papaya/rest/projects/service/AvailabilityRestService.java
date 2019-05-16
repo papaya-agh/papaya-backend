@@ -40,7 +40,7 @@ public class AvailabilityRestService {
         }
 
         AvailabilityDto availability = availabilityService
-                .getBySprintIdAndUserId(sprintId, userContext.getUserIdn())
+                .getBySprintIdAndUserId(sprintId, userContext.getUserId())
                 .map(availabilityMapper::mapToApi)
                 .orElseGet(() -> new AvailabilityDto().timeAvailable(0L).timeRemaining(0L).notes(""));
 
@@ -68,7 +68,7 @@ public class AvailabilityRestService {
             throw new ForbiddenAccessException();
         }
 
-        Availability availability = availabilityService.getBySprintIdAndUserId(sprintId, userContext.getUserIdn())
+        Availability availability = availabilityService.getBySprintIdAndUserId(sprintId, userContext.getUserId())
                 .map(persistedAvailability -> updatePersistedAvailability(persistedAvailability, availabilityDto))
                 .orElseGet(() -> createAvailability(availabilityDto, sprint));
 

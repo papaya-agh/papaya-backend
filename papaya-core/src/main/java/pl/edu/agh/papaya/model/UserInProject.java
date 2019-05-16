@@ -20,8 +20,7 @@ public class UserInProject extends BaseEntity {
     @ManyToOne
     private Project project;
 
-    @ManyToOne
-    private User user;
+    private String userId;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 8)

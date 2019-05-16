@@ -4,8 +4,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.papaya.api.model.UserIdentificationDto;
-import pl.edu.agh.papaya.model.User;
-import pl.edu.agh.papaya.service.user.UserService;
+import pl.edu.agh.papaya.security.User;
+import pl.edu.agh.papaya.security.UserService;
 
 @Component
 @RequiredArgsConstructor
@@ -14,7 +14,7 @@ public class UserIdentificationService {
     private final UserService userService;
 
     public Optional<User> identify(UserIdentificationDto userIdentification) {
-        Long userId = userIdentification.getId();
+        String userId = userIdentification.getId();
         String userEmail = userIdentification.getEmail();
 
         if (userId != null && userEmail != null) {

@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pl.edu.agh.papaya.security.User;
 
 @Entity
 @Getter
@@ -46,7 +47,7 @@ public class Project extends BaseEntity {
 
     public Optional<UserRole> getUserRoleInProject(User user) {
         return usersInProject.stream()
-                .filter(up -> up.getUser().getId().equals(user.getId()))
+                .filter(up -> up.getUserId().equals(user.getId()))
                 .findAny()
                 .map(UserInProject::getUserRole);
     }

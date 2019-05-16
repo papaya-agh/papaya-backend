@@ -1,33 +1,35 @@
 package pl.edu.agh.papaya.security;
 
+import lombok.RequiredArgsConstructor;
+import org.keycloak.KeycloakPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import pl.edu.agh.papaya.model.User;
 
 @Component
+@RequiredArgsConstructor
 public class UserContext {
 
-    public String getUserId() {
-        return getUserIdn().toString();
-    }
+    private final UserService userService;
 
-    public Long getUserIdn() {
+    public String getUserId() {
         return getUser().getId();
     }
 
     public User getUser() {
-        return getPrincipal().getUser();
-    }
-
-    private UserPrincipal getPrincipal() {
         Object principal = getAuthentication().getPrincipal();
 
-        if (principal instanceof UserPrincipal) {
-            return (UserPrincipal) principal;
+        if (principal instanceof KeycloakPrincipal) {
+            return mapToUser((KeycloakPrincipal) principal);
         }
 
         throw new UserNotAuthenticatedException("Invalid principal: " + principal + " (" + principal.getClass() + ")");
+    }
+
+    private User mapToUser(KeycloakPrincipal principal) {
+        String userId = principal.toString();
+        return userService.getUserById(userId)
+                .orElseThrow(AssertionError::new);
     }
 
     private Authentication getAuthentication() {

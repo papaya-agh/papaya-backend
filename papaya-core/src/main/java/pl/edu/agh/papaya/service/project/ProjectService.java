@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.agh.papaya.model.Project;
-import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.model.UserRole;
 import pl.edu.agh.papaya.repository.ProjectRepository;
 import pl.edu.agh.papaya.repository.UserInProjectRepository;
+import pl.edu.agh.papaya.security.User;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.security.UserNotAuthorizedException;
 
@@ -39,14 +39,7 @@ public class ProjectService {
      * @return projects which the user is a part of
      */
     public List<Project> getUserProjects(String userId) {
-        long parsedUserId;
-        try {
-            parsedUserId = Long.parseLong(userId);
-        } catch (NumberFormatException e) {
-            return Collections.emptyList();
-        }
-
-        return projectRepository.findActiveByUserId(parsedUserId);
+        return projectRepository.findActiveByUserId(userId);
     }
 
     public Optional<UserInProject> getUserInProject(Project project, User user) {
@@ -56,8 +49,7 @@ public class ProjectService {
     public boolean isUserInProject(Project project, String userId) {
         return userInProjectRepository.findActiveByProject(project)
                 .stream()
-                .map(UserInProject::getUser)
-                .map(User::getId)
+                .map(UserInProject::getUserId)
                 .map(Object::toString)
                 .anyMatch(userId::equals);
     }
@@ -67,7 +59,7 @@ public class ProjectService {
     }
 
     Project createProject(Project project) {
-        UserInProject userInProject = new UserInProject(project, userContext.getUser(), UserRole.ADMIN);
+        UserInProject userInProject = new UserInProject(project, userContext.getUserId(), UserRole.ADMIN);
         project.setUsersInProject(Collections.singletonList(userInProject));
 
         projectRepository.save(project);
@@ -84,10 +76,10 @@ public class ProjectService {
 
         if (existing.isPresent()) {
             if (existing.get().getUserRole() != role) {
-                userInProjectRepository.updateUserRole(project, user, role);
+                userInProjectRepository.updateUserRole(project, user.getId(), role);
             }
         } else {
-            UserInProject userInProject = new UserInProject(project, user, role);
+            UserInProject userInProject = new UserInProject(project, user.getId(), role);
             userInProjectRepository.save(userInProject);
         }
     }
@@ -105,6 +97,6 @@ public class ProjectService {
     public void removeUser(Project project, User user) {
         validateCurrentUserAdmin(project);
 
-        userInProjectRepository.updateUserRole(project, user, UserRole.INACTIVE);
+        userInProjectRepository.updateUserRole(project, user.getId(), UserRole.INACTIVE);
     }
 }

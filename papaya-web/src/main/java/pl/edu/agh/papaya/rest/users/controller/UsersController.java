@@ -10,9 +10,9 @@ import pl.edu.agh.papaya.api.model.UserDto;
 import pl.edu.agh.papaya.api.service.MeApi;
 import pl.edu.agh.papaya.api.service.UsersApi;
 import pl.edu.agh.papaya.mappers.UserMapper;
-import pl.edu.agh.papaya.model.User;
+import pl.edu.agh.papaya.security.User;
 import pl.edu.agh.papaya.security.UserContext;
-import pl.edu.agh.papaya.service.user.UserService;
+import pl.edu.agh.papaya.security.UserService;
 import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
 @RestController
@@ -27,11 +27,11 @@ public class UsersController implements UsersApi, MeApi {
 
     @Override
     public ResponseEntity<UserDto> getAuthenticatedUser() {
-        return getUser(userContext.getUserIdn());
+        return getUser(userContext.getUserId());
     }
 
     @Override
-    public ResponseEntity<UserDto> getUser(Long userId) {
+    public ResponseEntity<UserDto> getUser(String userId) {
         User user = userService.getUserById(userId).orElseThrow(ResourceNotFoundException::new);
         return ResponseEntity.ok(userMapper.mapToApi(user));
     }

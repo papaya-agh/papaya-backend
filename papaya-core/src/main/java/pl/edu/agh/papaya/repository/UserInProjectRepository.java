@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.agh.papaya.model.Project;
-import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.model.UserRole;
 
@@ -19,10 +18,11 @@ public interface UserInProjectRepository extends CrudRepository<UserInProject, L
     @Query("select up from UserInProject up where up.project = :project and up.userRole <> 'INACTIVE'")
     List<UserInProject> findActiveByProject(@Param("project") Project project);
 
-    Optional<UserInProject> findByProjectIdAndUserId(Long projectId, Long userId);
+    Optional<UserInProject> findByProjectIdAndUserId(Long projectId, String userId);
 
     @Transactional
     @Modifying
-    @Query("update UserInProject set userRole = :role where project = :project and user = :user")
-    void updateUserRole(@Param("project") Project project, @Param("user") User user, @Param("role") UserRole role);
+    @Query("update UserInProject set userRole = :role where project = :project and userId = :userId")
+    void updateUserRole(@Param("project") Project project, @Param("userId") String userId,
+            @Param("role") UserRole role);
 }

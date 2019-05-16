@@ -23,9 +23,17 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     compile 'com.h2database:h2'
     compile 'org.postgresql:postgresql:42.2.5'
     compile 'commons-validator:commons-validator:1.6'
+
+    compile 'org.keycloak:keycloak-spring-security-adapter:6.0.1'
+    compile 'org.keycloak:keycloak-spring-boot-starter:6.0.1'
+    compile 'org.keycloak:keycloak-admin-client:6.0.1'
+    compile 'org.jboss.resteasy:resteasy-client:3.6.3.Final'
+    compile 'org.jboss.resteasy:resteasy-jackson2-provider:3.6.3.Final'
+    compile 'org.jboss.resteasy:resteasy-multipart-provider:3.6.3.Final'
 }
 
 dependencyManagement.imports {

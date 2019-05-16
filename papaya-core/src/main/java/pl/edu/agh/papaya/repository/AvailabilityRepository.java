@@ -15,5 +15,5 @@ public interface AvailabilityRepository extends CrudRepository<Availability, Lon
 
     List<Availability> findBySprintId(Long sprintId);
 
-    Optional<Availability> findBySprintIdAndUserInProjectUserId(Long sprintId, Long userId);
+    Optional<Availability> findBySprintIdAndUserInProjectUserId(Long sprintId, String userId);
 }

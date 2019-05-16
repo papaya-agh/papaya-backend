@@ -15,14 +15,14 @@ import pl.edu.agh.papaya.mappers.UserInProjectMapper;
 import pl.edu.agh.papaya.mappers.UserMapper;
 import pl.edu.agh.papaya.mappers.UserRoleMapper;
 import pl.edu.agh.papaya.model.Project;
-import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.model.UserRole;
 import pl.edu.agh.papaya.rest.common.UserIdentificationService;
+import pl.edu.agh.papaya.security.User;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.security.UserNotAuthorizedException;
+import pl.edu.agh.papaya.security.UserService;
 import pl.edu.agh.papaya.service.project.ProjectService;
-import pl.edu.agh.papaya.service.user.UserService;
 import pl.edu.agh.papaya.util.BadRequestException;
 import pl.edu.agh.papaya.util.ConflictException;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
@@ -67,7 +67,7 @@ public class ProjectsRestService {
         Project project = projectService.getProjectById(projectId)
                 .orElseThrow(ResourceNotFoundException::new);
 
-        if (projectService.isUserInProject(project, user.getId().toString())) {
+        if (projectService.isUserInProject(project, user.getId())) {
             throw new ConflictException("Requested user is already in project");
         }
 
@@ -116,7 +116,7 @@ public class ProjectsRestService {
         return ResponseEntity.ok(usersInProjectDto);
     }
 
-    public ResponseEntity<Void> removeUserFromProject(Long projectId, Long userId) {
+    public ResponseEntity<Void> removeUserFromProject(Long projectId, String userId) {
         User user = userService.getUserById(userId)
                 .orElseThrow(BadRequestException::new);
 
@@ -136,7 +136,7 @@ public class ProjectsRestService {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    public void setUserRole(UserRoleDto userRole, Long projectId, Long userId) {
+    public void setUserRole(UserRoleDto userRole, Long projectId, String userId) {
         User user = userService.getUserById(userId)
                 .orElseThrow(BadRequestException::new);
 
