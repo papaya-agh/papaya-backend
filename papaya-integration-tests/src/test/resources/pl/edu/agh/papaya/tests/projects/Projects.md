@@ -34,8 +34,11 @@ is [added to the project](- "addToProject(#project.id, 'peter')").
 Now, [ ](- "c:echo=switchUser('peter')") should
 [have access to the project](- "c:assert-true=200==tryGetProjectById(#project.id).statusCode").
 
-[It is not possible](- "c:assert-true=400==tryAddToProjectNonExistingUser(#project.id).statusCode")
+[It is not possible](- "c:assert-true=400==tryToAddNonExistentUserToProject(#project.id).statusCode")
 to add a non-existing user to the project.
+
+[It is not possible](- "c:assert-true=409==tryToAddExistingUserToProject(#project.id, 'peter').statusCode")
+to add the same user to the project twice.
 
 ## Removing users from the project
 
