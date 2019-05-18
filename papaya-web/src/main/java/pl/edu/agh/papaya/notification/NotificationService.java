@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.model.Notification;
 import pl.edu.agh.papaya.model.NotificationType;
 import pl.edu.agh.papaya.model.Sprint;
-import pl.edu.agh.papaya.model.SprintState;
 import pl.edu.agh.papaya.notification.message.EmailMessage;
 import pl.edu.agh.papaya.notification.message.Message;
 import pl.edu.agh.papaya.notification.message.WebhookMessage;
@@ -60,7 +59,7 @@ public final class NotificationService {
     }
 
     private void sendDeclarationsFinishedNotifications(LocalDateTime currentTime) {
-        List<Sprint> paddingSprints = sprintService.getByState(SprintState.PADDING, currentTime);
+        List<Sprint> paddingSprints = sprintService.getAllPadding(currentTime);
 
         paddingSprints.forEach(sprint -> {
             var project = sprint.getProject();
@@ -122,7 +121,7 @@ public final class NotificationService {
     }
 
     private void sendDeclarationsOpenOrReminderNotifications(LocalDateTime currentTime) {
-        var declarableSprints = sprintService.getByState(SprintState.DECLARABLE, currentTime);
+        var declarableSprints = sprintService.getAllDeclarable(currentTime);
 
         declarableSprints.forEach(sprint -> {
             var project = sprint.getProject();

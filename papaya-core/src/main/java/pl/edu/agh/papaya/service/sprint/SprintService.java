@@ -2,11 +2,14 @@ package pl.edu.agh.papaya.service.sprint;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.model.Availability;
 import pl.edu.agh.papaya.model.Sprint;
@@ -15,7 +18,7 @@ import pl.edu.agh.papaya.repository.SprintRepository;
 import pl.edu.agh.papaya.service.availability.AvailabilityService;
 
 @Service
-@SuppressWarnings({"PMD.BeanMembersShouldSerialize"})
+@SuppressWarnings({"PMD.BeanMembersShouldSerialize", "MethodCount"})
 public class SprintService {
 
     private final EnumMap<SprintState, SprintStateQuery> sprintStateQueries = new EnumMap<>(SprintState.class);
@@ -28,57 +31,47 @@ public class SprintService {
     public SprintService(SprintRepository sprintRepository, AvailabilityService availabilityService) {
         this.sprintRepository = sprintRepository;
         this.availabilityService = availabilityService;
-        sprintStateQueries.put(SprintState.UPCOMING, sprintRepository::findUpcoming);
-        sprintStateQueries.put(SprintState.DECLARABLE, sprintRepository::findDeclarable);
-        sprintStateQueries.put(SprintState.PADDING, sprintRepository::findPadding);
-        sprintStateQueries.put(SprintState.IN_PROGRESS, sprintRepository::findInProgress);
-        sprintStateQueries.put(SprintState.FINISHED, sprintRepository::findFinished);
-        sprintStateQueries.put(SprintState.CLOSED, sprintRepository::findClosed);
+        sprintStateQueries.put(SprintState.UPCOMING, sprintRepository::findUpcomingInProject);
+        sprintStateQueries.put(SprintState.DECLARABLE, sprintRepository::findDeclarableInProject);
+        sprintStateQueries.put(SprintState.PADDING, sprintRepository::findPaddingInProject);
+        sprintStateQueries.put(SprintState.IN_PROGRESS, sprintRepository::findInProgressInProject);
+        sprintStateQueries.put(SprintState.FINISHED, sprintRepository::findFinishedInProject);
+        sprintStateQueries.put(SprintState.CLOSED, sprintRepository::findClosedInProject);
     }
 
-    public List<Sprint> getByState(SprintState sprintState) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        return getByState(sprintState, currentTime);
+    public List<Sprint> getAllDeclarable(LocalDateTime evaluationTime) {
+        return sprintRepository.findAllDeclarable(evaluationTime);
     }
 
-    public List<Sprint> getByState(SprintState sprintState, LocalDateTime evaluationTime) {
-        return sprintStateQueries.get(sprintState).querySprints(evaluationTime);
-    }
-
-    public List<Sprint> getByStateInProject(SprintState sprintState, Long projectId) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        return getByStateInProject(sprintState, projectId, currentTime);
-    }
-
-    public List<Sprint> getByStateInProject(SprintState sprintState, Long projectId, LocalDateTime evaluationTime) {
-        return getByState(sprintState, evaluationTime)
-                .stream()
-                .filter(sprint -> sprint.getProject().getId().equals(projectId))
-                .collect(Collectors.toList());
-    }
-
-    public List<Sprint> getByStates(List<SprintState> sprintStates) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        return getByStates(sprintStates, currentTime);
-    }
-
-    public List<Sprint> getByStates(List<SprintState> sprintStates, LocalDateTime evaluationTime) {
-        return sprintStates.stream()
-                .flatMap(sprintState -> getByState(sprintState, evaluationTime).stream())
-                .collect(Collectors.toList());
-    }
-
-    public List<Sprint> getByStatesInProject(List<SprintState> sprintStates, Long projectId) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        return getByStatesInProject(sprintStates, projectId, currentTime);
+    public List<Sprint> getAllPadding(LocalDateTime evaluationTime) {
+        return sprintRepository.findAllPadding(evaluationTime);
     }
 
     public List<Sprint> getByStatesInProject(List<SprintState> sprintStates, Long projectId,
             LocalDateTime evaluationTime) {
-        return getByStates(sprintStates, evaluationTime)
-                .stream()
-                .filter(sprint -> sprint.getProject().getId().equals(projectId))
+        return sprintStates.stream()
+                .flatMap(sprintState -> getByStateInProject(sprintState, projectId, evaluationTime).stream())
+                .sorted(Comparator.comparing(sprint -> sprint.getEnrollmentPeriod().getStart()))
                 .collect(Collectors.toList());
+    }
+
+    public List<Sprint> getByStateInProject(SprintState sprintState, Long projectId, LocalDateTime evaluationTime) {
+        return sprintStateQueries.get(sprintState).querySprints(evaluationTime, projectId, Pageable.unpaged());
+    }
+
+    public Optional<Sprint> getFirstByStatesInProject(List<SprintState> sprintStates, Long projectId,
+            LocalDateTime evaluationTime) {
+        return sprintStates.stream()
+                .flatMap(sprintState -> getFirstByStateInProject(sprintState, projectId, evaluationTime).stream())
+                .min(Comparator.comparing(sprint -> sprint.getEnrollmentPeriod().getStart()));
+    }
+
+    public Optional<Sprint> getFirstByStateInProject(SprintState sprintState, Long projectId,
+            LocalDateTime evaluationTime) {
+        return sprintStateQueries.get(sprintState)
+                .querySprints(evaluationTime, projectId, PageRequest.of(0, 1))
+                .stream()
+                .findFirst();
     }
 
     public SprintCreationWizard newSprint() {
@@ -96,6 +89,14 @@ public class SprintService {
 
     public Sprint closeSprint(Sprint sprint, Duration timeBurned, Duration estimatedTimePlanned,
             Duration finalTimePlanned, LocalDateTime dateClosed) {
+        if (sprint.getDateClosed() != null) {
+            throw new IllegalStateException("Sprint already closed");
+        }
+
+        if (sprint.getSprintState(dateClosed) != SprintState.FINISHED) {
+            throw new IllegalStateException("Sprint cannot be closed before it has ended");
+        }
+
         sprint.setDateClosed(dateClosed);
         updateSprintStats(sprint, estimatedTimePlanned, finalTimePlanned, timeBurned);
 
@@ -114,11 +115,11 @@ public class SprintService {
         Duration totalDeclaredTime = getTotalDeclaredTimeBySprint(sprint);
         sprint.updateCoefficient(totalDeclaredTime);
 
-        sprint.setAverageCoefficientCache(computeAvarageSprintCoefficient(sprint));
+        sprint.setAverageCoefficientCache(computeAverageSprintCoefficient(sprint));
     }
 
-    private Double computeAvarageSprintCoefficient(Sprint sprint) {
-        // date after start of this sprint because this one also has to be included
+    private double computeAverageSprintCoefficient(Sprint sprint) {
+        // dates before the end of this sprint because this one also has to be included
         return sprintRepository.findAverageSprintCoefficientUpToDate(sprint.getDurationPeriod().getEnd())
                 .orElseGet(() -> getDefaultSprintCoefficient(sprint));
     }
@@ -134,19 +135,49 @@ public class SprintService {
                 .reduce(Duration.ZERO, Duration::plus);
     }
 
-    public Optional<Sprint> getById(Long id) {
-        return sprintRepository.findById(id);
+    public Optional<Sprint> getPrecedingSprint(Sprint sprint, List<SprintState> sprintStates,
+            LocalDateTime evaluationTime) {
+        return getPrecedingSprints(sprint, sprintStates, evaluationTime).stream().findFirst();
+    }
+
+    public List<Sprint> getPrecedingSprints(Sprint sprint, List<SprintState> sprintStates,
+            LocalDateTime evaluationTime) {
+        return sprintRepository.findPrecedingSprints(sprint, Pageable.unpaged()).stream()
+                .filter(precedingSprint -> sprintStates.contains(precedingSprint.getSprintState(evaluationTime)))
+                .collect(Collectors.toList());
+    }
+
+    public Optional<Sprint> getFollowingSprint(Sprint sprint, List<SprintState> sprintStates,
+            LocalDateTime evaluationTime) {
+        return getFollowingSprints(sprint, sprintStates, evaluationTime).stream().findFirst();
+    }
+
+    public List<Sprint> getFollowingSprints(Sprint sprint, List<SprintState> sprintStates,
+            LocalDateTime evaluationTime) {
+        return sprintRepository.findFollowingSprints(sprint, Pageable.unpaged()).stream()
+                .filter(followingSprint -> sprintStates.contains(followingSprint.getSprintState(evaluationTime)))
+                .collect(Collectors.toList());
+    }
+
+    public double getPrevSprintAverageCoefficient(Long sprintId) {
+        return getById(sprintId)
+                .map(this::getPrevSprintAverageCoefficient)
+                .orElseThrow(() -> new IllegalArgumentException("No such sprint was found"));
     }
 
     public double getPrevSprintAverageCoefficient(Sprint sprint) {
-        return sprintRepository.findPreceding(sprint)
+        return sprintRepository.findPrecedingSprint(sprint)
                 .map(Sprint::getAverageCoefficientCache)
                 .orElseGet(() -> getDefaultSprintCoefficient(sprint));
+    }
+
+    public Optional<Sprint> getById(Long id) {
+        return sprintRepository.findById(id);
     }
 
     @FunctionalInterface
     private interface SprintStateQuery {
 
-        List<Sprint> querySprints(LocalDateTime evaluationTime);
+        List<Sprint> querySprints(LocalDateTime evaluationTime, Long projectId, Pageable pageable);
     }
 }

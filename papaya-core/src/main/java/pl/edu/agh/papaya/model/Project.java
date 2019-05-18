@@ -51,4 +51,15 @@ public class Project extends BaseEntity {
                 .findAny()
                 .map(UserInProject::getUserRole);
     }
+
+    public boolean isUserInProject(User user) {
+        return usersInProject.stream()
+                .filter(UserInProject::isUserActive)
+                .map(UserInProject::getUserId)
+                .anyMatch(user.getId()::equals);
+    }
+
+    public boolean isSprintInProject(Sprint sprint) {
+        return sprints.contains(sprint);
+    }
 }

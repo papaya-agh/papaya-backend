@@ -53,8 +53,8 @@ class SprintServiceSpec extends Specification {
         sprintRepository.save(sprint)
 
         when: 'the sprint service queries the sprint repository at a specified time to find all elements by their state'
-        List<Sprint> sprints = sprintService.
-                getByState(requestedState, TestUtils.createUtcLocalDateTimeFromEpochSeconds(currentTime))
+        List<Sprint> sprints = sprintService.getByStateInProject(requestedState, project.id,
+                TestUtils.createUtcLocalDateTimeFromEpochSeconds(currentTime))
 
         then: 'the sprint added to the repository is retrieved'
         sprints.size() == 1
@@ -92,8 +92,8 @@ class SprintServiceSpec extends Specification {
         sprintRepository.save(sprint)
 
         when: 'the sprint service queries the sprint repository at a specified time to find all elements by their state'
-        List<Sprint> sprints = sprintService.
-                getByState(requestedState, TestUtils.createUtcLocalDateTimeFromEpochSeconds(currentTime))
+        List<Sprint> sprints = sprintService.getByStateInProject(requestedState, project.id,
+                TestUtils.createUtcLocalDateTimeFromEpochSeconds(currentTime))
 
         then: 'the sprint added to the repository is retrieved'
         sprints.size() == 1
@@ -136,7 +136,7 @@ class SprintServiceSpec extends Specification {
         when: 'all sprint states are searched for'
         Map<SprintState, Integer> results = [:]
         SprintState.values().each {
-            results.put(it, sprintService.getByState(it, currentTime).size())
+            results.put(it, sprintService.getByStateInProject(it, project.id, currentTime).size())
         }
 
         then: 'the number of sprints with each state will match the expected number'

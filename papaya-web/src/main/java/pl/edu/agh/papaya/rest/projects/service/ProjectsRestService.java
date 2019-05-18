@@ -92,7 +92,7 @@ public class ProjectsRestService {
         Project project = projectService.getProjectById(id)
                 .orElseThrow(ResourceNotFoundException::new);
 
-        if (!projectService.isUserInProject(project, userContext.getUserId())) {
+        if (!project.isUserInProject(userContext.getUser())) {
             throw new ForbiddenAccessException();
         }
 
