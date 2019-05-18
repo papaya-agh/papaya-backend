@@ -38,15 +38,22 @@ public class ProjectsFixture extends ConcordionSpringTestBase {
     }
 
     public void addToProject(long projectId, String username) throws ApiException {
-        UserIdentificationDto userIdentification = new UserIdentificationDto();
-        userIdentification.setEmail(getUser(username).getEmail());
+        String email = getUser(username).getEmail();
+        UserIdentificationDto userIdentification = new UserIdentificationDto().email(email);
         projectsApi.addUserToProject(userIdentification, projectId);
     }
 
-    public ApiResponse<ProjectMemberDto> tryAddToProjectNonExistingUser(long projectId) {
-        UserIdentificationDto userIdentification = new UserIdentificationDto();
-        userIdentification.setEmail("i.do.not.exist@example.com");
+    private ApiResponse<ProjectMemberDto> tryToAddUserToProject(long projectId, String email) {
+        UserIdentificationDto userIdentification = new UserIdentificationDto().email(email);
         return failSilently(() -> projectsApi.addUserToProjectWithHttpInfo(userIdentification, projectId));
+    }
+
+    public ApiResponse<ProjectMemberDto> tryToAddExistingUserToProject(long projectId, String username) {
+        return tryToAddUserToProject(projectId, getUser(username).getEmail());
+    }
+
+    public ApiResponse<ProjectMemberDto> tryToAddNonExistentUserToProject(long projectId) {
+        return tryToAddUserToProject(projectId, "i.do.not.exist@example.com");
     }
 
     public void removeFromProject(long projectId, String username) throws ApiException {
