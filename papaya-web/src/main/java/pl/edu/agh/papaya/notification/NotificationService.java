@@ -28,9 +28,6 @@ import pl.edu.agh.papaya.service.userinproject.UserInProjectService;
 @SuppressWarnings({"PMD.BeanMembersShouldSerialize"})
 public final class NotificationService {
 
-    @Value("${notifications.frequency.minutes:1440}")
-    private Integer notificationFrequency;
-
     private final SprintService sprintService;
 
     private final UserInProjectService userInProjectService;
@@ -40,6 +37,9 @@ public final class NotificationService {
     private final AvailabilityRepository availabilityRepository;
 
     private final JavaMailSender javaMailSender;
+
+    @Value("${notifications.frequency.minutes:1440}")
+    private Integer notificationFrequency;
 
     @Autowired
     public NotificationService(SprintService sprintService, UserInProjectService userInProjectService,

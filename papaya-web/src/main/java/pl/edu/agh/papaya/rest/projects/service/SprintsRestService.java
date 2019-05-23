@@ -86,57 +86,59 @@ public class SprintsRestService {
                 .withProject(project)
                 .withEnrollmentPeriod(enrollmentPeriod)
                 .withDurationPeriod(durationPeriod)
-                .withTimePlanned(Duration.ofMinutes(0L))
                 .create();
         return ResponseEntity.ok(sprintMapper.mapToApi(created));
     }
 
-    private ResponseEntity<SprintDto> closeSprint(Long sprintId, Duration timeBurned, Duration timePlanned) {
-        Sprint sprint = getValidSprint(sprintId);
-
-        if (sprint.getDateClosed() != null) {
-            throw new IllegalStateException("Sprint already closed");
-        }
-
-        LocalDateTime timeNow = LocalDateTime.now();
-
-        if (sprint.getSprintState(timeNow) != SprintState.FINISHED) {
-            throw new IllegalStateException("Sprint cannot be closed before it has ended");
-        }
-
-        Sprint changedSprint = sprintService.closeSprint(sprint, timeBurned, timePlanned, timeNow);
-        return ResponseEntity.ok(sprintMapper.mapToApi(changedSprint));
+    private boolean isInOverlapWithLastSprint(Project project, LocalDateTimePeriod durationPeriod) {
+        Optional<Sprint> lastSprintOpt = sprintService.getLastInProject(project.getId());
+        return lastSprintOpt.isPresent() && durationPeriod.isBefore(lastSprintOpt.get().getDurationPeriod());
     }
 
     public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId) {
-        Sprint sprint = getValidSprint(sprintId);
         Project project = projectsRestService.getValidProject(projectId);
 
         if (!project.isAdmin(userContext.getUser())) {
             throw new ForbiddenAccessException();
         }
 
-        List<Availability> availabilities = sprint.getAvailabilities();
+        Sprint currentSprint = getValidSprint(sprintId);
+        List<Availability> availabilities = currentSprint.getAvailabilities();
         List<UserAvailabilityDto> userAvailabilityDtos = getUserAvailabilityDtos(project, availabilities);
 
-        Duration totalAvailableTime = availabilities.stream()
+        Duration totalDeclaredTime = availabilities.stream()
                 .map(Availability::getTimeAvailable)
                 .reduce(Duration.ZERO, Duration::plus);
 
-        // to be expanded in issue IO2019TEAM-100
-        double coefficient = Optional.ofNullable(sprint.getTimeBurned())
-                .filter(timeBurned -> !Duration.ZERO.equals(timeBurned))
-                .map(timeBurned -> (double) sprint.getTimePlanned().toMinutes() / timeBurned.toMinutes())
-                .orElse(0.d);
-
-        return ResponseEntity.ok(createSprintSummaryDto(userAvailabilityDtos, totalAvailableTime, coefficient));
+        return ResponseEntity.ok(createSprintSummaryDto(
+                currentSprint,
+                userAvailabilityDtos,
+                totalDeclaredTime));
     }
 
-    private SprintSummaryDto createSprintSummaryDto(List<UserAvailabilityDto> userAvailabilityDtos,
-            Duration totalAvailableTime, double coefficient) {
-        return new SprintSummaryDto().membersAvailability(userAvailabilityDtos)
-                .totalAvailableTime(totalAvailableTime.toMinutes())
-                .sprintCoefficient(coefficient);
+    private SprintSummaryDto createSprintSummaryDto(Sprint currentSprint,
+            List<UserAvailabilityDto> userAvailabilityDtos, Duration totalDeclaredTime) {
+
+        double prevAverageSprintCoefficient = sprintService.getPrevSprintAverageCoefficient(currentSprint);
+        double currentAverageSprintCoefficient = currentSprint.getAverageCoefficientCache();
+
+        long timeToAssign = (long) (totalDeclaredTime.toMinutes() / prevAverageSprintCoefficient);
+
+        Long totalNeededTime = null;
+        Double coefficient = currentSprint.getCoefficient();
+        Duration finalTimePlanned = currentSprint.getFinalTimePlanned();
+        if (coefficient != null && finalTimePlanned != null) {
+            totalNeededTime = (long) (finalTimePlanned.toMinutes() * coefficient);
+        }
+
+        return new SprintSummaryDto()
+                .sprint(sprintMapper.mapToApi(currentSprint))
+                .membersAvailability(userAvailabilityDtos)
+                .prevAverageSprintCoefficient(prevAverageSprintCoefficient)
+                .currentAverageSprintCoefficient(currentAverageSprintCoefficient)
+                .timeToAssign(timeToAssign)
+                .totalDeclaredTime(totalDeclaredTime.toMinutes())
+                .totalNeededTime(totalNeededTime);
     }
 
     private List<UserAvailabilityDto> getUserAvailabilityDtos(Project project, List<Availability> availabilities) {
@@ -157,6 +159,11 @@ public class SprintsRestService {
                 .map(userAvailabilityMapper::emptyAvailability).collect(Collectors.toList());
     }
 
+    private Sprint getValidSprint(Long sprintId) {
+        return sprintService.getById(sprintId)
+                .orElseThrow(ResourceNotFoundException::new);
+    }
+
     public ResponseEntity<SprintDto> modifySprint(SprintDto sprintDto, Long projectId, Long sprintId) {
         Project project = projectsRestService.getValidProject(projectId);
 
@@ -169,24 +176,30 @@ public class SprintsRestService {
                     AssertionUtil.requireNonNegative("timeBurned", sprintDto.getTimeBurned())
             );
 
-            @SuppressWarnings({"MultipleStringLiterals"})
-            Duration timePlanned = Duration.ofMinutes(
-                    AssertionUtil.requireNonNegative("timePlanned", sprintDto.getTimePlanned())
+            Duration finalTimePlanned = Duration.ofMinutes(
+                    AssertionUtil.requireNonNegative("finalTimePlanned", sprintDto.getFinalTimePlanned())
             );
 
-            return closeSprint(sprintId, timeBurned, timePlanned);
+            return closeSprint(sprintId, timeBurned, finalTimePlanned);
         }
 
         throw new BadRequestException("Can not modify unclosed sprint");
     }
 
-    private Sprint getValidSprint(Long sprintId) {
-        return sprintService.getById(sprintId)
-                .orElseThrow(ResourceNotFoundException::new);
-    }
+    private ResponseEntity<SprintDto> closeSprint(Long sprintId, Duration timeBurned, Duration finalTimePlanned) {
+        Sprint sprint = getValidSprint(sprintId);
 
-    private boolean isInOverlapWithLastSprint(Project project, LocalDateTimePeriod durationPeriod) {
-        Optional<Sprint> lastSprintOpt = sprintService.getLastInProject(project.getId());
-        return lastSprintOpt.isPresent() && durationPeriod.isBefore(lastSprintOpt.get().getDurationPeriod());
+        if (sprint.getDateClosed() != null) {
+            throw new IllegalStateException("Sprint already closed");
+        }
+
+        LocalDateTime timeNow = LocalDateTime.now();
+
+        if (sprint.getSprintState(timeNow) != SprintState.FINISHED) {
+            throw new IllegalStateException("Sprint cannot be closed before it has ended");
+        }
+
+        Sprint changedSprint = sprintService.closeSprint(sprint, timeBurned, null, finalTimePlanned, timeNow);
+        return ResponseEntity.ok(sprintMapper.mapToApi(changedSprint));
     }
 }

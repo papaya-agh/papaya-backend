@@ -33,4 +33,17 @@ public interface SprintRepository extends CrudRepository<Sprint, Long> {
     List<Sprint> findNotClosed(LocalDateTime localDateTime);
 
     Optional<Sprint> findFirstByProjectIdOrderByDurationPeriodStartDesc(Long projectId);
+
+    default Optional<Sprint> findPreceding(Sprint sprint) {
+        Long projectId = sprint.getProject().getId();
+        LocalDateTime durationPeriodStart = sprint.getDurationPeriod().getStart();
+        return findFirstByProjectIdAndDurationPeriodStartBeforeOrderByDurationPeriodStartDesc(projectId,
+                durationPeriodStart);
+    }
+
+    Optional<Sprint> findFirstByProjectIdAndDurationPeriodStartBeforeOrderByDurationPeriodStartDesc(Long projectId,
+            LocalDateTime start);
+
+    @Query("select avg(s.stats.coefficient) from Sprint s where s.durationPeriod.start <= ?1")
+    Optional<Double> findAverageSprintCoefficientUpToDate(LocalDateTime date);
 }
