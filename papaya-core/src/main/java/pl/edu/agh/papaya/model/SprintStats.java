@@ -24,7 +24,7 @@ public class SprintStats {
 
     private Double coefficient;
 
-    private Double averageCoefficientCache;
+    private Double averageCoefficientCache = 0d;
 
     public void updateCoefficient(Duration totalDeclaredTime) {
         if (timeBurned != null && totalDeclaredTime != null) {
