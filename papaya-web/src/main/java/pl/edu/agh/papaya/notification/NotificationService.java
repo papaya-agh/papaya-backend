@@ -15,17 +15,17 @@ import pl.edu.agh.papaya.model.Notification;
 import pl.edu.agh.papaya.model.NotificationType;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
-import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.notification.message.EmailMessage;
 import pl.edu.agh.papaya.notification.message.Message;
 import pl.edu.agh.papaya.notification.message.WebhookMessage;
 import pl.edu.agh.papaya.repository.AvailabilityRepository;
 import pl.edu.agh.papaya.repository.NotificationRepository;
+import pl.edu.agh.papaya.security.User;
 import pl.edu.agh.papaya.service.sprint.SprintService;
 import pl.edu.agh.papaya.service.userinproject.UserInProjectService;
 
 @Service
-@SuppressWarnings({"PMD.BeanMembersShouldSerialize"})
+@SuppressWarnings({"PMD.BeanMembersShouldSerialize", "ClassFanOutComplexity"})
 public final class NotificationService {
 
     private final SprintService sprintService;
@@ -39,7 +39,7 @@ public final class NotificationService {
     private final JavaMailSender javaMailSender;
 
     @Value("${notifications.frequency.minutes:1440}")
-    private Integer notificationFrequency;
+    private transient Integer notificationFrequency;
 
     @Autowired
     public NotificationService(SprintService sprintService, UserInProjectService userInProjectService,
@@ -64,14 +64,14 @@ public final class NotificationService {
 
         paddingSprints.forEach(sprint -> {
             var project = sprint.getProject();
-            var usersInProjects = userInProjectService.getActiveUsersInProject(project);
+            var users = userInProjectService.getActiveUsersInProject(project);
             var notificationStrategy = NotificationStrategy.resolveNotificationStrategy(project);
 
             Optional<Notification> lastNotification = Optional.ofNullable(
                     Iterables.getLast(notificationRepository.findSprintNotifications(sprint), null));
 
             if (lastNotification.isPresent() && sprintClosedMessageNotYetSent(lastNotification.get())) {
-                Optional<Message> message = createSprintClosedMessage(sprint, usersInProjects, notificationStrategy);
+                Optional<Message> message = createSprintClosedMessage(sprint, users, notificationStrategy);
                 message.ifPresent(value -> sendAndUpdate(currentTime, sprint, value));
             }
         });
@@ -86,9 +86,9 @@ public final class NotificationService {
         updateNotificationRepository(sprint, message, currentTime);
     }
 
-    private Optional<Message> createSprintClosedMessage(Sprint sprint, List<UserInProject> usersInProjects,
+    private Optional<Message> createSprintClosedMessage(Sprint sprint, List<User> users,
             NotificationStrategy notificationStrategy) {
-        List<UserInProject> usersWhoMissedDeadline = getMembersWithoutDeclarations(sprint, usersInProjects);
+        List<User> usersWhoMissedDeadline = getMembersWithoutDeclarations(sprint, users);
         Message message = null;
         if (!usersWhoMissedDeadline.isEmpty()) {
             if (notificationStrategy.equals(NotificationStrategy.EMAIL)) {
@@ -105,10 +105,10 @@ public final class NotificationService {
         return !lastNotification.getType().equals(NotificationType.SPRINT_ENROLLMENT_CLOSED);
     }
 
-    private List<UserInProject> getMembersWithoutDeclarations(Sprint sprint, List<UserInProject> usersInProject) {
-        return usersInProject.stream()
-                .filter(userInProject -> availabilityRepository
-                        .findByUserInProjectAndSprint(userInProject, sprint)
+    private List<User> getMembersWithoutDeclarations(Sprint sprint, List<User> users) {
+        return users.stream()
+                .filter(user -> availabilityRepository
+                        .findByUserIdAndSprint(user.getId(), sprint)
                         .isEmpty())
                 .collect(Collectors.toList());
     }
@@ -126,30 +126,30 @@ public final class NotificationService {
 
         declarableSprints.forEach(sprint -> {
             var project = sprint.getProject();
-            var usersInProject = userInProjectService.getActiveUsersInProject(project);
+            var users = userInProjectService.getActiveUsersInProject(project);
             var notificationStrategy = NotificationStrategy.resolveNotificationStrategy(project);
 
             Optional<Message> message =
-                    createDeclarableMessage(currentTime, sprint, usersInProject, notificationStrategy);
+                    createDeclarableMessage(currentTime, sprint, users, notificationStrategy);
             message.ifPresent(value -> sendAndUpdate(currentTime, sprint, value));
         });
     }
 
     private Optional<Message> createDeclarableMessage(LocalDateTime currentTime, Sprint sprint,
-            List<UserInProject> usersInProject, NotificationStrategy notificationStrategy) {
+            List<User> users, NotificationStrategy notificationStrategy) {
         Notification lastNotification = Iterables.getLast(notificationRepository.findSprintNotifications(sprint), null);
 
         Message message = null;
 
         if (lastNotification == null) {
             if (notificationStrategy.equals(NotificationStrategy.EMAIL)) {
-                message = new EmailMessage(javaMailSender, usersInProject, sprint,
+                message = new EmailMessage(javaMailSender, users, sprint,
                         NotificationType.SPRINT_ENROLLMENT_OPENED);
             } else {
                 message = new WebhookMessage(sprint, NotificationType.SPRINT_ENROLLMENT_OPENED);
             }
         } else if (isNextNotificationDue(currentTime, lastNotification)) {
-            message = createReminderMessage(sprint, usersInProject);
+            message = createReminderMessage(sprint, users);
         }
 
         return Optional.ofNullable(message);
@@ -160,8 +160,8 @@ public final class NotificationService {
                 .compareTo(Duration.ofMinutes(notificationFrequency)) >= 0;
     }
 
-    private Message createReminderMessage(Sprint sprint, List<UserInProject> usersInProject) {
-        List<UserInProject> usersWithoutDeclaration = getMembersWithoutDeclarations(sprint, usersInProject);
+    private Message createReminderMessage(Sprint sprint, List<User> users) {
+        List<User> usersWithoutDeclaration = getMembersWithoutDeclarations(sprint, users);
         return new EmailMessage(javaMailSender, usersWithoutDeclaration, sprint,
                 NotificationType.SPRINT_ENROLLMENT_REMINDER);
     }

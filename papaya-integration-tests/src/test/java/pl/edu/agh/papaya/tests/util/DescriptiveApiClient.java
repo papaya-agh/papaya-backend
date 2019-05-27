@@ -30,8 +30,16 @@ public class DescriptiveApiClient extends ApiClient {
     private String createMessage(ApiException apiException) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object response = mapper.readValue(apiException.getResponseBody(), Object.class);
-            String prettyPrintResponse = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
+            String responseBody = apiException.getResponseBody();
+            String prettyPrintResponse;
+
+            if (responseBody == null || responseBody.isEmpty()) {
+                prettyPrintResponse = "<empty>";
+            } else {
+                Object response = mapper.readValue(responseBody, Object.class);
+                prettyPrintResponse = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
+            }
+
             return "Response code: " + apiException.getCode() + ", response:\n" + prettyPrintResponse;
         } catch (IOException e) {
             throw new AssertionError(e);

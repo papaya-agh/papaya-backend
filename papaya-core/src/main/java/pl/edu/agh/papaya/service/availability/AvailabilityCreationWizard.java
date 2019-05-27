@@ -5,8 +5,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.papaya.model.Availability;
 import pl.edu.agh.papaya.model.Sprint;
-import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
+import pl.edu.agh.papaya.security.User;
 import pl.edu.agh.papaya.service.userinproject.UserInProjectService;
 
 @RequiredArgsConstructor

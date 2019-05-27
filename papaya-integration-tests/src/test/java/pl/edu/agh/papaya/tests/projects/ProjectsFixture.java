@@ -10,10 +10,10 @@ import pl.edu.agh.papaya.api.client.model.ProjectMemberDto;
 import pl.edu.agh.papaya.api.client.model.UserIdentificationDto;
 import pl.edu.agh.papaya.api.client.model.UserRoleDto;
 import pl.edu.agh.papaya.api.client.service.ProjectsApi;
-import pl.edu.agh.papaya.tests.util.ConcordionSpringTestBase;
+import pl.edu.agh.papaya.tests.util.IntegrationTestBase;
 
 @FullOGNL
-public class ProjectsFixture extends ConcordionSpringTestBase {
+public class ProjectsFixture extends IntegrationTestBase {
 
     @Autowired
     private ProjectsApi projectsApi;

@@ -2,7 +2,7 @@ package pl.edu.agh.papaya.mappers;
 
 import org.springframework.stereotype.Component;
 import pl.edu.agh.papaya.api.model.UserDto;
-import pl.edu.agh.papaya.model.User;
+import pl.edu.agh.papaya.security.User;
 
 @Component
 public class UserMapper implements Mapper<User, UserDto> {

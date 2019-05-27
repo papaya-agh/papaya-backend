@@ -17,7 +17,7 @@ public class AvailabilityService {
 
     private final UserInProjectService userInProjectService;
 
-    public Optional<Availability> getBySprintIdAndUserId(Long sprintId, Long userId) {
+    public Optional<Availability> getBySprintIdAndUserId(Long sprintId, String userId) {
         return availabilityRepository.findBySprintIdAndUserInProjectUserId(sprintId, userId);
     }
 

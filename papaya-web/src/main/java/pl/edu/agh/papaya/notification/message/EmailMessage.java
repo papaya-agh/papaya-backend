@@ -9,24 +9,24 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import pl.edu.agh.papaya.model.NotificationType;
 import pl.edu.agh.papaya.model.Sprint;
-import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.notification.NotificationMessageException;
+import pl.edu.agh.papaya.security.User;
 
 @Getter
 @RequiredArgsConstructor
 public class EmailMessage implements Message {
 
     private final JavaMailSender javaMailSender;
-    private final List<UserInProject> usersInProject;
+    private final List<User> users;
     private final Sprint sprint;
     private final NotificationType notificationType;
 
     @Override
     public void send() throws NotificationMessageException {
-        if (!usersInProject.isEmpty()) {
+        if (!users.isEmpty()) {
             SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-            String[] emails = usersInProject.stream()
-                    .map(userInProject -> userInProject.getUser().getEmail())
+            String[] emails = users.stream()
+                    .map(User::getEmail)
                     .toArray(String[]::new);
             simpleMailMessage.setBcc(emails);
             simpleMailMessage.setSubject(notificationType.getEmailSubject());

@@ -50,12 +50,12 @@ public class ProjectsRestController implements ProjectsApi {
     }
 
     @Override
-    public ResponseEntity<Void> removeUserFromProject(Long projectId, Long userId) {
+    public ResponseEntity<Void> removeUserFromProject(Long projectId, String userId) {
         return projectsRestService.removeUserFromProject(projectId, userId);
     }
 
     @Override
-    public ResponseEntity<Void> setUserRole(ProjectMemberDto projectMember, Long projectId, Long userId) {
+    public ResponseEntity<Void> setUserRole(ProjectMemberDto projectMember, Long projectId, String userId) {
         if (projectMember.getUser() != null) {
             throw new BadRequestException();
         }

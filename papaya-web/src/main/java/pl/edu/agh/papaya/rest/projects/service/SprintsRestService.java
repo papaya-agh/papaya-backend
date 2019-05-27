@@ -23,7 +23,6 @@ import pl.edu.agh.papaya.model.LocalDateTimePeriod;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
-import pl.edu.agh.papaya.model.User;
 import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.service.sprint.SprintService;
@@ -149,13 +148,13 @@ public class SprintsRestService {
     }
 
     private List<UserAvailabilityDto> getUsersWithNoAvailabilities(Project project, List<Availability> availabilities) {
-        List<User> users = project.getUsersInProject().stream()
-                .map(UserInProject::getUser)
+        List<String> userIds = project.getUsersInProject().stream()
+                .map(UserInProject::getUserId)
                 .collect(Collectors.toList());
 
-        return users.stream()
-                .filter(user -> availabilities.stream()
-                        .noneMatch(availability -> user.equals(availability.getUserInProject().getUser())))
+        return userIds.stream()
+                .filter(userId -> availabilities.stream()
+                        .noneMatch(availability -> userId.equals(availability.getUserInProject().getUserId())))
                 .map(userAvailabilityMapper::emptyAvailability).collect(Collectors.toList());
     }
 
