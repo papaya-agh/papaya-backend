@@ -15,6 +15,7 @@ public class ProjectCreationWizard {
     private Double initialCoefficient;
     private String webhookUrl;
     private String channelName;
+    private String jiraUrl;
 
     ProjectCreationWizard(ProjectService projectService) {
         this.projectService = Objects.requireNonNull(projectService);
@@ -45,11 +46,20 @@ public class ProjectCreationWizard {
         return this;
     }
 
+    public ProjectCreationWizard withJiraUrl(String jiraUrl) {
+        if (!new UrlValidator().isValid(jiraUrl)) {
+            throw new IllegalArgumentException("The provided Jira url is not correct");
+        }
+        this.jiraUrl = jiraUrl;
+        return this;
+    }
+
     public Project create() {
         Project project = new Project();
         project.setName(AssertionUtil.require("name", name));
         project.setDescription(AssertionUtil.require("description", description));
         project.setInitialCoefficient(AssertionUtil.require("initialCoefficient", initialCoefficient));
+        project.setJiraUrl(AssertionUtil.require("jiraUrl", jiraUrl));
         if (webhookUrl != null) {
             project.setWebHook(webhookUrl);
             project.setChannelName(channelName);

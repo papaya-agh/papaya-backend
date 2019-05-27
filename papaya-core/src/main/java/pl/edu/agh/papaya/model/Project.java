@@ -35,6 +35,18 @@ public class Project extends BaseEntity {
 
     private String channelName;
 
+    private String jiraUrl;
+
+    private String jiraSecret;
+
+    private String requestToken;
+
+    private String accessToken;
+
+    private Long jiraProjectId;
+
+    private Long jiraBoardId;
+
     public boolean isAdmin(User user) {
         return hasRole(user, UserRole.ADMIN);
     }

@@ -79,8 +79,7 @@ public class SprintService {
     }
 
     Sprint createSprint(Sprint sprint) {
-        sprintRepository.save(sprint);
-        return sprint;
+        return sprintRepository.save(sprint);
     }
 
     public Optional<Sprint> getLastInProject(Long projectId) {
@@ -100,14 +99,11 @@ public class SprintService {
         sprint.setDateClosed(dateClosed);
         updateSprintStats(sprint, estimatedTimePlanned, finalTimePlanned, timeBurned);
 
-        sprintRepository.save(sprint);
-
-        return sprint;
+        return sprintRepository.save(sprint);
     }
 
     public void updateSprintStats(Sprint sprint, Duration estimatedTimePlanned, Duration finalTimePlanned,
             Duration timeBurned) {
-
         sprint.setEstimatedTimePlanned(estimatedTimePlanned);
         sprint.setFinalTimePlanned(finalTimePlanned);
         sprint.setTimeBurned(timeBurned);
@@ -116,6 +112,8 @@ public class SprintService {
         sprint.updateCoefficient(totalDeclaredTime);
 
         sprint.setAverageCoefficientCache(computeAverageSprintCoefficient(sprint));
+
+        sprintRepository.save(sprint);
     }
 
     private double computeAverageSprintCoefficient(Sprint sprint) {

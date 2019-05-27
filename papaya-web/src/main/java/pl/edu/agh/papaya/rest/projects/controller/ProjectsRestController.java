@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
+import pl.edu.agh.papaya.api.model.JiraBoardDto;
+import pl.edu.agh.papaya.api.model.JiraConfigDto;
+import pl.edu.agh.papaya.api.model.JiraSprintDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
 import pl.edu.agh.papaya.api.model.ProjectMemberDto;
 import pl.edu.agh.papaya.api.model.SortingDirection;
@@ -111,7 +114,32 @@ public class ProjectsRestController implements ProjectsApi {
     }
 
     @Override
-    public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId) {
-        return sprintsRestService.getSprintSummary(projectId, sprintId);
+    public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId, Long jiraSprintId) {
+        return sprintsRestService.getSprintSummary(projectId, sprintId, jiraSprintId);
+    }
+
+    @Override
+    public ResponseEntity<List<JiraSprintDto>> getAvailableJiraSprints(Long projectId, Long sprintId) {
+        return sprintsRestService.getAvailableJiraSprints(projectId, sprintId);
+    }
+
+    @Override
+    public ResponseEntity<JiraConfigDto> getJiraAuthorizationLink(Long projectId) {
+        return projectsRestService.getJiraAuthorizationLink(projectId);
+    }
+
+    @Override
+    public ResponseEntity<List<JiraBoardDto>> getJiraBoards(Long projectId) {
+        return projectsRestService.getJiraBoards(projectId);
+    }
+
+    @Override
+    public ResponseEntity<Void> setJiraBoard(JiraBoardDto jiraBoardDto, Long projectId) {
+        return projectsRestService.setJiraBoard(jiraBoardDto, projectId);
+    }
+
+    @Override
+    public ResponseEntity<Void> setJiraSecret(JiraConfigDto jiraConfigDto, Long projectId) {
+        return projectsRestService.setJiraSecret(jiraConfigDto, projectId);
     }
 }

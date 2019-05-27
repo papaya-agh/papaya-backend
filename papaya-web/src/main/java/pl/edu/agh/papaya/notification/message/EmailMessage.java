@@ -2,6 +2,7 @@ package pl.edu.agh.papaya.notification.message;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.MailException;
@@ -27,10 +28,13 @@ public class EmailMessage implements Message {
             SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
             String[] emails = users.stream()
                     .map(User::getEmail)
+                    .filter(Objects::nonNull)
                     .toArray(String[]::new);
-            simpleMailMessage.setBcc(emails);
-            simpleMailMessage.setSubject(notificationType.getEmailSubject());
-            simpleMailMessage.setText(getMessage());
+            if (emails.length > 0) {
+                simpleMailMessage.setBcc(emails);
+                simpleMailMessage.setSubject(notificationType.getEmailSubject());
+                simpleMailMessage.setText(getMessage());
+            }
             try {
                 javaMailSender.send(simpleMailMessage);
             } catch (MailException e) {

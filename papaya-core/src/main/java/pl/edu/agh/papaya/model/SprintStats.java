@@ -27,11 +27,10 @@ public class SprintStats {
     private Double averageCoefficientCache = 0d;
 
     public void updateCoefficient(Duration totalDeclaredTime) {
-        if (timeBurned != null && totalDeclaredTime != null) {
+        if (timeBurned != null && totalDeclaredTime != null && !totalDeclaredTime.isZero()) {
             this.coefficient = DoubleUtil.saturated(
                     (double) totalDeclaredTime.toMinutes() / (double) timeBurned.toMinutes(),
-                    MIN_COEFFICIENT,
-                    MAX_COEFFICIENT
+                    MIN_COEFFICIENT, MAX_COEFFICIENT
             );
         }
     }
