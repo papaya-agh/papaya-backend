@@ -7,18 +7,19 @@ import org.springframework.web.bind.annotation.RestController;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
 import pl.edu.agh.papaya.api.model.ProjectMemberDto;
+import pl.edu.agh.papaya.api.model.SortingDirection;
 import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.api.model.SprintStateDto;
 import pl.edu.agh.papaya.api.model.SprintSummaryDto;
 import pl.edu.agh.papaya.api.model.UserIdentificationDto;
 import pl.edu.agh.papaya.api.model.UserRoleDto;
 import pl.edu.agh.papaya.api.service.ProjectsApi;
-import pl.edu.agh.papaya.rest.projects.service.AvailabilityRestService;
+import pl.edu.agh.papaya.rest.availability.service.AvailabilityRestService;
 import pl.edu.agh.papaya.rest.projects.service.ProjectsRestService;
-import pl.edu.agh.papaya.rest.projects.service.SprintsRestService;
+import pl.edu.agh.papaya.rest.sprints.service.SprintsRestService;
 import pl.edu.agh.papaya.util.BadRequestException;
 
-@SuppressWarnings({"PMD.BeanMembersShouldSerialize", "ClassFanOutComplexity"})
+@SuppressWarnings({"PMD.BeanMembersShouldSerialize", "ClassFanOutComplexity", "MethodCount"})
 @RestController
 @RequiredArgsConstructor
 public class ProjectsRestController implements ProjectsApi {
@@ -69,8 +70,20 @@ public class ProjectsRestController implements ProjectsApi {
     }
 
     @Override
-    public ResponseEntity<List<SprintDto>> getSprints(Long projectId, List<SprintStateDto> sprintStateDtos) {
-        return sprintsRestService.getSprints(projectId, sprintStateDtos);
+    public ResponseEntity<List<SprintDto>> getSprints(Long projectId, List<SprintStateDto> sprintStates,
+            SortingDirection sortingDirection, Long limit) {
+        return sprintsRestService.getSprints(projectId, sprintStates, sortingDirection, limit);
+    }
+
+    @Override
+    public ResponseEntity<SprintDto> getNextSprint(Long projectId, Long sprintId, List<SprintStateDto> sprintStates) {
+        return sprintsRestService.getNextSprint(projectId, sprintId, sprintStates);
+    }
+
+    @Override
+    public ResponseEntity<SprintDto> getPreviousSprint(Long projectId, Long sprintId,
+            List<SprintStateDto> sprintStates) {
+        return sprintsRestService.getPreviousSprint(projectId, sprintId, sprintStates);
     }
 
     @Override

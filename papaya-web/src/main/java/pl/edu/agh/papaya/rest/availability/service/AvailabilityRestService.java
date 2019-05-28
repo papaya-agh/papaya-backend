@@ -1,4 +1,4 @@
-package pl.edu.agh.papaya.rest.projects.service;
+package pl.edu.agh.papaya.rest.availability.service;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -8,20 +8,18 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
 import pl.edu.agh.papaya.mappers.AvailabilityMapper;
 import pl.edu.agh.papaya.model.Availability;
-import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
+import pl.edu.agh.papaya.rest.sprints.service.SprintsRestService;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.service.availability.AvailabilityService;
-import pl.edu.agh.papaya.service.sprint.SprintService;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
-import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
 @Service
 @RequiredArgsConstructor
 public class AvailabilityRestService {
 
-    private final SprintService sprintService;
+    private final SprintsRestService sprintRestService;
 
     private final UserContext userContext;
 
@@ -29,38 +27,22 @@ public class AvailabilityRestService {
 
     private final AvailabilityMapper availabilityMapper;
 
-    private final ProjectsRestService projectsRestService;
-
     public ResponseEntity<AvailabilityDto> getUserAvailability(Long projectId, Long sprintId) {
-        Project project = projectsRestService.getValidProject(projectId);
-        Sprint sprint = getValidSprint(sprintId);
-
-        if (!isSprintInProject(sprint, project)) {
-            throw new ForbiddenAccessException();
-        }
+        Sprint sprint = sprintRestService.getValidSprint(projectId, sprintId);
 
         AvailabilityDto availability = availabilityService
-                .getBySprintIdAndUserId(sprintId, userContext.getUserId())
+                .getBySprintIdAndUserId(sprint.getId(), userContext.getUserId())
                 .map(availabilityMapper::mapToApi)
                 .orElseGet(() -> new AvailabilityDto().timeAvailable(0L).timeRemaining(0L).notes(""));
 
         return ResponseEntity.ok(availability);
     }
 
-    private Sprint getValidSprint(Long sprintId) {
-        return sprintService.getById(sprintId)
-                .orElseThrow(ResourceNotFoundException::new);
-    }
-
-    private boolean isSprintInProject(Sprint sprint, Project project) {
-        return sprint.getProject().getId().equals(project.getId());
-    }
-
     public ResponseEntity<AvailabilityDto> updateUserAvailability(AvailabilityDto availabilityDto,
             Long projectId, Long sprintId) {
-        Project project = projectsRestService.getValidProject(projectId);
-        Sprint sprint = getValidSprint(sprintId);
-        if (!isSprintInProject(sprint, project) || isAvailabilityDeclarationNotAllowed(sprint)) {
+        Sprint sprint = sprintRestService.getValidSprint(projectId, sprintId);
+
+        if (!isAvailabilityDeclarationAllowed(sprint)) {
             throw new ForbiddenAccessException();
         }
 
@@ -75,8 +57,8 @@ public class AvailabilityRestService {
         return ResponseEntity.ok(availabilityMapper.mapToApi(availability));
     }
 
-    private boolean isAvailabilityDeclarationNotAllowed(Sprint sprint) {
-        return sprint.getSprintState() != SprintState.DECLARABLE;
+    private boolean isAvailabilityDeclarationAllowed(Sprint sprint) {
+        return sprint.getSprintState() == SprintState.DECLARABLE;
     }
 
     private Availability createAvailability(AvailabilityDto availabilityDto, Sprint sprint) {

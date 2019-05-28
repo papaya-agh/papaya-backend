@@ -1,8 +1,8 @@
-package pl.edu.agh.papaya.rest.projects.service;
+package pl.edu.agh.papaya.rest.sprints.service;
 
+import com.google.common.collect.Lists;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.papaya.api.model.SortingDirection;
 import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.api.model.SprintStateDto;
 import pl.edu.agh.papaya.api.model.SprintSummaryDto;
@@ -24,6 +25,7 @@ import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
 import pl.edu.agh.papaya.model.UserInProject;
+import pl.edu.agh.papaya.rest.projects.service.ProjectsRestService;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.service.sprint.SprintService;
 import pl.edu.agh.papaya.util.AssertionUtil;
@@ -35,8 +37,6 @@ import pl.edu.agh.papaya.util.ResourceNotFoundException;
 @RequiredArgsConstructor
 @SuppressWarnings({"ClassFanOutComplexity"})
 public class SprintsRestService {
-
-    private static final List<SprintStateDto> ALL_SPRINT_STATE_DTOS = List.of(SprintStateDto.values());
 
     private final SprintService sprintService;
 
@@ -52,19 +52,74 @@ public class SprintsRestService {
 
     private final UserAvailabilityMapper userAvailabilityMapper;
 
-    public ResponseEntity<List<SprintDto>> getSprints(Long projectId, List<SprintStateDto> sprintStateDtos) {
+    public ResponseEntity<List<SprintDto>> getSprints(Long projectId, List<SprintStateDto> sprintStateDtos,
+            SortingDirection sortingDirection, Long limit) {
+
+        Project project = projectsRestService.getValidProject(projectId);
+
         final LocalDateTime currentTime = LocalDateTime.now();
 
-        List<SprintState> sprintStates = sprintStateMapper.mapFromApi(
-                Optional.ofNullable(sprintStateDtos).orElse(ALL_SPRINT_STATE_DTOS));
+        List<SprintState> sprintStates = sprintStateMapper.mapFromApiWithDefault(sprintStateDtos);
 
-        List<SprintDto> sprints = sprintService.getByStatesInProject(sprintStates, projectId, currentTime)
-                .stream()
-                .sorted(Comparator.comparing(sprint -> sprint.getEnrollmentPeriod().getStart()))
-                .map(sprint -> sprintMapper.mapToApi(sprint, currentTime))
-                .collect(Collectors.toList());
+        List<Sprint> sprints = sprintService.getByStatesInProject(sprintStates, project.getId(), currentTime);
 
-        return ResponseEntity.ok(sprints);
+        if (SortingDirection.DESC.equals(sortingDirection)) {
+            sprints = Lists.reverse(sprints);
+        }
+
+        long limitOrAll = limit != null ? limit : sprints.size();
+
+        List<SprintDto> sprintDtos =
+                sprintMapper.mapToApi(sprints.stream().limit(limitOrAll).collect(Collectors.toList()), currentTime);
+
+        return ResponseEntity.ok(sprintDtos);
+    }
+
+    public ResponseEntity<SprintDto> getNextSprint(Long projectId, Long sprintId,
+            List<SprintStateDto> sprintStateDtos) {
+        Sprint sprint = getValidSprint(projectId, sprintId);
+
+        List<SprintState> sprintStates = sprintStateMapper.mapFromApiWithDefault(sprintStateDtos);
+
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        Sprint nextSprint = sprintService.getFollowingSprint(sprint, sprintStates, currentTime)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        SprintDto nextSprintDto = sprintMapper.mapToApi(nextSprint, currentTime);
+
+        return ResponseEntity.ok(nextSprintDto);
+    }
+
+    public Sprint getValidSprint(Long projectId, Long sprintId) {
+        Project project = projectsRestService.getValidProject(projectId);
+        Sprint sprint = sprintService.getById(sprintId).orElseThrow(ResourceNotFoundException::new);
+
+        if (!project.isSprintInProject(sprint)) {
+            throw new ResourceNotFoundException();
+        }
+
+        if (!sprint.getProject().isUserInProject(userContext.getUser())) {
+            throw new ForbiddenAccessException();
+        }
+
+        return sprint;
+    }
+
+    public ResponseEntity<SprintDto> getPreviousSprint(Long projectId, Long sprintId,
+            List<SprintStateDto> sprintStateDtos) {
+        Sprint sprint = getValidSprint(projectId, sprintId);
+
+        List<SprintState> sprintStates = sprintStateMapper.mapFromApiWithDefault(sprintStateDtos);
+
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        Sprint previousSprint = sprintService.getPrecedingSprint(sprint, sprintStates, currentTime)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        SprintDto previousSprintDto = sprintMapper.mapToApi(previousSprint, currentTime);
+
+        return ResponseEntity.ok(previousSprintDto);
     }
 
     public ResponseEntity<SprintDto> addSprint(SprintDto sprintDto, Long projectId) {
@@ -77,7 +132,7 @@ public class SprintsRestService {
         LocalDateTimePeriod enrollmentPeriod = localDateTimePeriodMapper.mapFromApi(sprintDto.getEnrollmentPeriod());
         LocalDateTimePeriod durationPeriod = localDateTimePeriodMapper.mapFromApi(sprintDto.getDurationPeriod());
 
-        if (isInOverlapWithLastSprint(project, durationPeriod)) {
+        if (inOverlapWithPreviousSprint(project, durationPeriod)) {
             throw new IllegalStateException("Cannot create sprint starting before the last one ended");
         }
 
@@ -89,28 +144,35 @@ public class SprintsRestService {
         return ResponseEntity.ok(sprintMapper.mapToApi(created));
     }
 
-    private boolean isInOverlapWithLastSprint(Project project, LocalDateTimePeriod durationPeriod) {
+    private boolean inOverlapWithPreviousSprint(Project project, LocalDateTimePeriod durationPeriod) {
         Optional<Sprint> lastSprintOpt = sprintService.getLastInProject(project.getId());
         return lastSprintOpt.isPresent() && durationPeriod.isBefore(lastSprintOpt.get().getDurationPeriod());
     }
 
-    public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId) {
-        Project project = projectsRestService.getValidProject(projectId);
+    public ResponseEntity<SprintDto> getSprint(Long projectId, Long sprintId) {
+        Sprint sprint = getValidSprint(projectId, sprintId);
 
-        if (!project.isAdmin(userContext.getUser())) {
+        SprintDto sprintDto = sprintMapper.mapToApi(sprint);
+
+        return ResponseEntity.ok(sprintDto);
+    }
+
+    public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId) {
+        Sprint sprint = getValidSprint(projectId, sprintId);
+
+        if (!sprint.getProject().isAdmin(userContext.getUser())) {
             throw new ForbiddenAccessException();
         }
 
-        Sprint currentSprint = getValidSprint(sprintId);
-        List<Availability> availabilities = currentSprint.getAvailabilities();
-        List<UserAvailabilityDto> userAvailabilityDtos = getUserAvailabilityDtos(project, availabilities);
+        List<Availability> availabilities = sprint.getAvailabilities();
+        List<UserAvailabilityDto> userAvailabilityDtos = getUserAvailabilityDtos(sprint.getProject(), availabilities);
 
         Duration totalDeclaredTime = availabilities.stream()
                 .map(Availability::getTimeAvailable)
                 .reduce(Duration.ZERO, Duration::plus);
 
         return ResponseEntity.ok(createSprintSummaryDto(
-                currentSprint,
+                sprint,
                 userAvailabilityDtos,
                 totalDeclaredTime));
     }
@@ -158,47 +220,38 @@ public class SprintsRestService {
                 .map(userAvailabilityMapper::emptyAvailability).collect(Collectors.toList());
     }
 
-    private Sprint getValidSprint(Long sprintId) {
-        return sprintService.getById(sprintId)
-                .orElseThrow(ResourceNotFoundException::new);
-    }
-
     public ResponseEntity<SprintDto> modifySprint(SprintDto sprintDto, Long projectId, Long sprintId) {
-        Project project = projectsRestService.getValidProject(projectId);
+        Sprint sprint = getValidSprint(projectId, sprintId);
 
-        if (!project.isAdmin(userContext.getUser())) {
+        if (!sprint.getProject().isAdmin(userContext.getUser())) {
             throw new ForbiddenAccessException();
         }
 
         if (sprintDto.getSprintState() == SprintStateDto.CLOSED) {
-            Duration timeBurned = Duration.ofMinutes(
-                    AssertionUtil.requireNonNegative("timeBurned", sprintDto.getTimeBurned())
-            );
-
-            Duration finalTimePlanned = Duration.ofMinutes(
-                    AssertionUtil.requireNonNegative("finalTimePlanned", sprintDto.getFinalTimePlanned())
-            );
-
-            return closeSprint(sprintId, timeBurned, finalTimePlanned);
+            return closeSprint(sprint, sprintDto.getTimeBurned(), sprintDto.getEstimatedTimePlanned(),
+                    sprintDto.getFinalTimePlanned());
         }
 
-        throw new BadRequestException("Can not modify unclosed sprint");
+        throw new BadRequestException("The only available sprint modification is closing the sprint");
     }
 
-    private ResponseEntity<SprintDto> closeSprint(Long sprintId, Duration timeBurned, Duration finalTimePlanned) {
-        Sprint sprint = getValidSprint(sprintId);
-
-        if (sprint.getDateClosed() != null) {
-            throw new IllegalStateException("Sprint already closed");
-        }
-
+    private ResponseEntity<SprintDto> closeSprint(Sprint sprint, Long timeBurnedInMinutes,
+            Long estimatedTimePlannedInMinutes, Long finalTimePlannedInMinutes) {
         LocalDateTime timeNow = LocalDateTime.now();
+        try {
+            Duration timeBurned = Duration.ofMinutes(
+                    AssertionUtil.requireNonNegative("timeBurned", timeBurnedInMinutes));
+            Duration estimatedTimePlanned = Duration.ofMinutes(
+                    AssertionUtil.requireNonNegative("estimatedTimePlanned", estimatedTimePlannedInMinutes));
+            Duration finalTimePlanned = Duration.ofMinutes(
+                    AssertionUtil.requireNonNegative("finalTimePlanned", finalTimePlannedInMinutes));
 
-        if (sprint.getSprintState(timeNow) != SprintState.FINISHED) {
-            throw new IllegalStateException("Sprint cannot be closed before it has ended");
+            Sprint changedSprint =
+                    sprintService.closeSprint(sprint, timeBurned, estimatedTimePlanned, finalTimePlanned, timeNow);
+
+            return ResponseEntity.ok(sprintMapper.mapToApi(changedSprint));
+        } catch (IllegalStateException e) {
+            throw new BadRequestException(e);
         }
-
-        Sprint changedSprint = sprintService.closeSprint(sprint, timeBurned, null, finalTimePlanned, timeNow);
-        return ResponseEntity.ok(sprintMapper.mapToApi(changedSprint));
     }
 }
