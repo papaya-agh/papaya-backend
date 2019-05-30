@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.papaya.api.model.JiraSprintDto;
 import pl.edu.agh.papaya.api.model.SortingDirection;
 import pl.edu.agh.papaya.api.model.SprintDto;
 import pl.edu.agh.papaya.api.model.SprintStateDto;
@@ -24,7 +25,9 @@ import pl.edu.agh.papaya.model.LocalDateTimePeriod;
 import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.Sprint;
 import pl.edu.agh.papaya.model.SprintState;
+import pl.edu.agh.papaya.model.SprintStats;
 import pl.edu.agh.papaya.model.UserInProject;
+import pl.edu.agh.papaya.rest.jira.service.JiraRestService;
 import pl.edu.agh.papaya.rest.projects.service.ProjectsRestService;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.service.sprint.SprintService;
@@ -51,6 +54,8 @@ public class SprintsRestService {
     private final LocalDateTimePeriodMapper localDateTimePeriodMapper;
 
     private final UserAvailabilityMapper userAvailabilityMapper;
+
+    private final JiraRestService jiraRestService;
 
     public ResponseEntity<List<SprintDto>> getSprints(Long projectId, List<SprintStateDto> sprintStateDtos,
             SortingDirection sortingDirection, Long limit) {
@@ -149,32 +154,27 @@ public class SprintsRestService {
         return lastSprintOpt.isPresent() && durationPeriod.isBefore(lastSprintOpt.get().getDurationPeriod());
     }
 
-    public ResponseEntity<SprintDto> getSprint(Long projectId, Long sprintId) {
-        Sprint sprint = getValidSprint(projectId, sprintId);
-
-        SprintDto sprintDto = sprintMapper.mapToApi(sprint);
-
-        return ResponseEntity.ok(sprintDto);
-    }
-
-    public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId) {
+    public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId, Long jiraSprintId) {
         Sprint sprint = getValidSprint(projectId, sprintId);
 
         if (!sprint.getProject().isAdmin(userContext.getUser())) {
             throw new ForbiddenAccessException();
         }
 
+        Project project = sprint.getProject();
+        if (jiraSprintId != null) {
+            SprintStats sprintStats = jiraRestService.updateFromJira(project, jiraSprintId);
+            sprintService.updateSprintStats(sprint, sprintStats.getEstimatedTimePlanned(),
+                    sprintStats.getFinalTimePlanned(), sprintStats.getTimeBurned());
+        }
         List<Availability> availabilities = sprint.getAvailabilities();
-        List<UserAvailabilityDto> userAvailabilityDtos = getUserAvailabilityDtos(sprint.getProject(), availabilities);
+        List<UserAvailabilityDto> userAvailabilityDtos = getUserAvailabilityDtos(project, availabilities);
 
         Duration totalDeclaredTime = availabilities.stream()
                 .map(Availability::getTimeAvailable)
                 .reduce(Duration.ZERO, Duration::plus);
 
-        return ResponseEntity.ok(createSprintSummaryDto(
-                sprint,
-                userAvailabilityDtos,
-                totalDeclaredTime));
+        return ResponseEntity.ok(createSprintSummaryDto(sprint, userAvailabilityDtos, totalDeclaredTime));
     }
 
     private SprintSummaryDto createSprintSummaryDto(Sprint currentSprint,
@@ -253,5 +253,13 @@ public class SprintsRestService {
         } catch (IllegalStateException e) {
             throw new BadRequestException(e);
         }
+    }
+
+    public ResponseEntity<List<JiraSprintDto>> getAvailableJiraSprints(Long projectId, Long sprintId) {
+        Sprint sprint = getValidSprint(projectId, sprintId);
+
+        List<JiraSprintDto> jiraSprintDtos = jiraRestService.getAvailableJiraSprints(sprint);
+
+        return ResponseEntity.ok(jiraSprintDtos);
     }
 }

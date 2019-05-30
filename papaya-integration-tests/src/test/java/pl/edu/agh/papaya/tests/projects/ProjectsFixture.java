@@ -22,7 +22,8 @@ public class ProjectsFixture extends IntegrationTestBase {
         return projectsApi.addProject(new ProjectDto()
                 .name("Example Project")
                 .description("Example Project Description")
-                .initialCoefficient(0.7));
+                .initialCoefficient(0.7)
+                .jiraUrl("https://www.jira.example.com"));
     }
 
     public ProjectDto getProjectById(Long id) throws ApiException {

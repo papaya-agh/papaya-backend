@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.papaya.api.model.JiraBoardDto;
+import pl.edu.agh.papaya.api.model.JiraConfigDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
 import pl.edu.agh.papaya.api.model.ProjectMemberDto;
 import pl.edu.agh.papaya.api.model.UserIdentificationDto;
@@ -18,6 +20,7 @@ import pl.edu.agh.papaya.model.Project;
 import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.model.UserRole;
 import pl.edu.agh.papaya.rest.common.UserIdentificationService;
+import pl.edu.agh.papaya.rest.jira.service.JiraRestService;
 import pl.edu.agh.papaya.security.User;
 import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.security.UserNotAuthorizedException;
@@ -26,6 +29,7 @@ import pl.edu.agh.papaya.service.project.ProjectService;
 import pl.edu.agh.papaya.util.BadRequestException;
 import pl.edu.agh.papaya.util.ConflictException;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
+import pl.edu.agh.papaya.util.NotAcceptableException;
 import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
 @Service
@@ -49,15 +53,22 @@ public class ProjectsRestService {
 
     private final UserMapper userMapper;
 
+    private final JiraRestService jiraRestService;
+
     public ResponseEntity<ProjectDto> addProject(ProjectDto projectDto) {
-        Project created = projectService.newProject()
-                .withName(projectDto.getName())
-                .withDescription(projectDto.getDescription())
-                .withInitialCoefficient(projectDto.getInitialCoefficient())
-                .withWebhook(projectDto.getWebhookUrl())
-                .withChannelName(projectDto.getChannelName())
-                .create();
-        return ResponseEntity.ok(projectMapper.mapToApi(created));
+        try {
+            Project created = projectService.newProject()
+                    .withName(projectDto.getName())
+                    .withDescription(projectDto.getDescription())
+                    .withInitialCoefficient(projectDto.getInitialCoefficient())
+                    .withWebhook(projectDto.getWebhookUrl())
+                    .withChannelName(projectDto.getChannelName())
+                    .withJiraUrl(projectDto.getJiraUrl())
+                    .create();
+            return ResponseEntity.ok(projectMapper.mapToApi(created));
+        } catch (IllegalArgumentException e) {
+            throw new NotAcceptableException(e);
+        }
     }
 
     public ResponseEntity<ProjectMemberDto> addUserToProject(UserIdentificationDto userIdentification, Long projectId) {
@@ -150,5 +161,37 @@ public class ProjectsRestService {
         } catch (UserNotAuthorizedException e) {
             throw new ForbiddenAccessException(e);
         }
+    }
+
+    public ResponseEntity<JiraConfigDto> getJiraAuthorizationLink(Long projectId) {
+        Project project = projectService.getProjectById(projectId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        return ResponseEntity.ok(new JiraConfigDto().url(jiraRestService.getJiraAuthorizationLink(project)));
+    }
+
+    public ResponseEntity<Void> setJiraSecret(JiraConfigDto jiraConfigDto, Long projectId) {
+        Project project = projectService.getProjectById(projectId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        jiraRestService.setJiraSecret(project, jiraConfigDto.getSecret());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<List<JiraBoardDto>> getJiraBoards(Long projectId) {
+        Project project = projectService.getProjectById(projectId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        return ResponseEntity.ok(jiraRestService.getJiraBoards(project));
+    }
+
+    public ResponseEntity<Void> setJiraBoard(JiraBoardDto jiraBoardDto, Long projectId) {
+        Project project = projectService.getProjectById(projectId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        jiraRestService.setJiraBoard(project, jiraBoardDto);
+
+        return ResponseEntity.noContent().build();
     }
 }
