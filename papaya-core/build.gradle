@@ -27,7 +27,8 @@ dependencies {
     compile 'com.h2database:h2'
     compile 'org.postgresql:postgresql:42.2.5'
     compile 'commons-validator:commons-validator:1.6'
-
+    compile 'com.google.oauth-client:google-oauth-client:1.29.0'
+    compile 'org.json:json:20180813'
     compile 'org.keycloak:keycloak-spring-security-adapter:6.0.1'
     compile 'org.keycloak:keycloak-spring-boot-starter:6.0.1'
     compile 'org.keycloak:keycloak-admin-client:6.0.1'
