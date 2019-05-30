@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.papaya.api.model.JiraBoardDto;
@@ -179,25 +180,29 @@ public class JiraRestService {
                 .toLocalDateTime();
     }
 
-    public SprintStats updateFromJira(Project project, Long jiraSprintId) {
+    public Optional<SprintStats> updateFromJira(Project project, Long jiraSprintId) {
         checkFullJiraConfig(project);
-        JSONObject jiraNumbers = projectService.getJiraUrl(project)
-                .flatMap(url -> jiraAuthorizationService.makeAuthorizedGetRequest(url, project.getJiraSecret(),
-                        project.getAccessToken(),
-                        String.format(JIRA_HOURS_ENDPOINT, jiraSprintId, project.getJiraBoardId())))
-                .orElseThrow(BadRequestException::new)
-                .getJSONObject(0)
-                .getJSONObject(CONTENTS);
-
         SprintStats sprintStats = new SprintStats();
-        long estimatedPlanned = jiraNumbers.getJSONObject(ISSUES_NOT_COMPLETED_INITIAL_ESTIMATE_SUM).getLong(VALUE);
-        long finalPlanned = (jiraNumbers.getJSONObject(ALL_ISSUES_ESTIMATE_SUM).getLong(VALUE) + estimatedPlanned) / 2;
-        long burned = finalPlanned - jiraNumbers.getJSONObject(ISSUES_NOT_COMPLETED_ESTIMATE_SUM).getLong(VALUE);
+        try {
+            JSONObject jiraNumbers = projectService.getJiraUrl(project)
+                    .flatMap(url -> jiraAuthorizationService.makeAuthorizedGetRequest(url, project.getJiraSecret(),
+                            project.getAccessToken(),
+                            String.format(JIRA_HOURS_ENDPOINT, jiraSprintId, project.getJiraBoardId())))
+                    .orElseThrow(BadRequestException::new)
+                    .getJSONObject(0)
+                    .getJSONObject(CONTENTS);
 
-        sprintStats.setEstimatedTimePlanned(Duration.ofSeconds(estimatedPlanned));
-        sprintStats.setFinalTimePlanned(Duration.ofSeconds(finalPlanned));
-        sprintStats.setTimeBurned(Duration.ofSeconds(burned));
+            long estimatedPlanned = jiraNumbers.getJSONObject(ISSUES_NOT_COMPLETED_INITIAL_ESTIMATE_SUM).getLong(VALUE);
+            long finalPlanned =
+                    (jiraNumbers.getJSONObject(ALL_ISSUES_ESTIMATE_SUM).getLong(VALUE) + estimatedPlanned) / 2;
+            long burned = finalPlanned - jiraNumbers.getJSONObject(ISSUES_NOT_COMPLETED_ESTIMATE_SUM).getLong(VALUE);
 
-        return sprintStats;
+            sprintStats.setEstimatedTimePlanned(Duration.ofSeconds(estimatedPlanned));
+            sprintStats.setFinalTimePlanned(Duration.ofSeconds(finalPlanned));
+            sprintStats.setTimeBurned(Duration.ofSeconds(burned));
+        } catch (JSONException e) {
+            return Optional.empty();
+        }
+        return Optional.of(sprintStats);
     }
 }
