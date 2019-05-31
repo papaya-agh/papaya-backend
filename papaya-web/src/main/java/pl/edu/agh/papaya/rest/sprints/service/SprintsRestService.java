@@ -163,9 +163,9 @@ public class SprintsRestService {
 
         Project project = sprint.getProject();
         if (jiraSprintId != null) {
-            SprintStats sprintStats = jiraRestService.updateFromJira(project, jiraSprintId);
-            sprintService.updateSprintStats(sprint, sprintStats.getEstimatedTimePlanned(),
-                    sprintStats.getFinalTimePlanned(), sprintStats.getTimeBurned());
+            Optional<SprintStats> sprintStats = jiraRestService.updateFromJira(project, jiraSprintId);
+            sprintStats.ifPresent(stats -> sprintService.updateSprintStats(sprint, stats.getEstimatedTimePlanned(),
+                    stats.getFinalTimePlanned(), stats.getTimeBurned()));
         }
         List<Availability> availabilities = sprint.getAvailabilities();
         List<UserAvailabilityDto> userAvailabilityDtos = getUserAvailabilityDtos(project, availabilities);
