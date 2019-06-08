@@ -9,13 +9,10 @@ import pl.edu.agh.papaya.util.AssertionUtil;
 @SuppressWarnings({"checkstyle:HiddenField", "PMD.BeanMembersShouldSerialize"})
 public class SprintCreationWizard {
 
-    private static final String DEFAULT_NAME = "";
-    private static final String DEFAULT_NOTIFICATION_MESSAGE = "";
-
     private final SprintService sprintService;
 
-    private String name = DEFAULT_NAME;
-    private String notificationMessage = DEFAULT_NOTIFICATION_MESSAGE;
+    private String name;
+    private String notificationMessage;
     private Project project;
     private LocalDateTimePeriod enrollmentPeriod;
     private LocalDateTimePeriod durationPeriod;
@@ -25,16 +22,12 @@ public class SprintCreationWizard {
     }
 
     public SprintCreationWizard withName(String name) {
-        if (name != null) {
-            this.name = name;
-        }
+        this.name = name;
         return this;
     }
 
     public SprintCreationWizard withNotificationMessage(String notificationMessage) {
-        if (name != null) {
-            this.notificationMessage = notificationMessage;
-        }
+        this.notificationMessage = notificationMessage;
         return this;
     }
 

@@ -56,6 +56,16 @@ public class WebhookMessage implements Message {
     }
 
     @Override
+    public String getSprintName() {
+        return sprint.getName();
+    }
+
+    @Override
+    public String getSprintNotificationMessage() {
+        return sprint.getNotificationMessage();
+    }
+
+    @Override
     public String getProjectName() {
         return sprint.getProject().getName();
     }
