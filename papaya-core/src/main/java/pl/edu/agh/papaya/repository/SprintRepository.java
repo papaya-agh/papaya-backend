@@ -60,6 +60,6 @@ public interface SprintRepository extends CrudRepository<Sprint, Long> {
             + "and s.durationPeriod.end > :#{#sprint.durationPeriod.end} order by s.durationPeriod.start asc")
     List<Sprint> findFollowingSprints(@Param("sprint") Sprint sprint, Pageable pageable);
 
-    @Query("select avg(s.stats.coefficient) from Sprint s where s.durationPeriod.start <= ?1")
-    Optional<Double> findAverageSprintCoefficientUpToDate(LocalDateTime evaluationTime);
+    @Query("select avg(s.stats.coefficient) from Sprint s where s.project.id = ?1 and s.durationPeriod.start <= ?2")
+    Optional<Double> findAverageSprintCoefficientInProjectUpToDate(Long projectId, LocalDateTime evaluationTime);
 }

@@ -118,7 +118,9 @@ public class SprintService {
 
     private double computeAverageSprintCoefficient(Sprint sprint) {
         // dates before the end of this sprint because this one also has to be included
-        return sprintRepository.findAverageSprintCoefficientUpToDate(sprint.getDurationPeriod().getEnd())
+        return sprintRepository.findAverageSprintCoefficientInProjectUpToDate(
+                sprint.getProject().getId(),
+                sprint.getDurationPeriod().getEnd())
                 .orElseGet(() -> getDefaultSprintCoefficient(sprint));
     }
 
