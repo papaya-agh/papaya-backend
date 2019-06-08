@@ -9,14 +9,33 @@ import pl.edu.agh.papaya.util.AssertionUtil;
 @SuppressWarnings({"checkstyle:HiddenField", "PMD.BeanMembersShouldSerialize"})
 public class SprintCreationWizard {
 
+    private static final String DEFAULT_NAME = "";
+    private static final String DEFAULT_NOTIFICATION_MESSAGE = "";
+
     private final SprintService sprintService;
 
+    private String name = DEFAULT_NAME;
+    private String notificationMessage = DEFAULT_NOTIFICATION_MESSAGE;
     private Project project;
     private LocalDateTimePeriod enrollmentPeriod;
     private LocalDateTimePeriod durationPeriod;
 
     SprintCreationWizard(SprintService sprintService) {
         this.sprintService = Objects.requireNonNull(sprintService);
+    }
+
+    public SprintCreationWizard withName(String name) {
+        if (name != null) {
+            this.name = name;
+        }
+        return this;
+    }
+
+    public SprintCreationWizard withNotificationMessage(String notificationMessage) {
+        if (name != null) {
+            this.notificationMessage = notificationMessage;
+        }
+        return this;
     }
 
     public SprintCreationWizard withProject(Project project) {
@@ -41,6 +60,8 @@ public class SprintCreationWizard {
             throw new IllegalStateException("enrollmentPeriod must be strictly before durationPeriod");
         }
 
+        sprint.setName(name);
+        sprint.setNotificationMessage(notificationMessage);
         sprint.setProject(AssertionUtil.require("project", project));
         sprint.setDurationPeriod(AssertionUtil.require("durationPeriod", durationPeriod));
         sprint.setEnrollmentPeriod(AssertionUtil.require("enrollmentPeriod", enrollmentPeriod));

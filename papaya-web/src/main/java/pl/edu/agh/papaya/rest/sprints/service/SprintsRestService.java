@@ -127,6 +127,7 @@ public class SprintsRestService {
         return ResponseEntity.ok(previousSprintDto);
     }
 
+    @SuppressWarnings({"MethodLength"})
     public ResponseEntity<SprintDto> addSprint(SprintDto sprintDto, Long projectId) {
         Project project = projectsRestService.getValidProject(projectId);
 
@@ -141,8 +142,13 @@ public class SprintsRestService {
             throw new IllegalStateException("Cannot create sprint starting before the last one ended");
         }
 
+        String name = sprintDto.getName();
+        String notificationMessage = sprintDto.getNotificationMessage();
+
         Sprint created = sprintService.newSprint()
                 .withProject(project)
+                .withName(name)
+                .withNotificationMessage(notificationMessage)
                 .withEnrollmentPeriod(enrollmentPeriod)
                 .withDurationPeriod(durationPeriod)
                 .create();
