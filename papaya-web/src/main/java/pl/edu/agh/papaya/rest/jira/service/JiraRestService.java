@@ -20,32 +20,12 @@ import pl.edu.agh.papaya.model.SprintStats;
 import pl.edu.agh.papaya.service.jira.JiraAuthorizationService;
 import pl.edu.agh.papaya.service.project.ProjectService;
 import pl.edu.agh.papaya.util.BadRequestException;
+import pl.edu.agh.papaya.util.JiraUtil;
 import pl.edu.agh.papaya.util.NotAcceptableException;
 
 @Service
 @RequiredArgsConstructor
 public class JiraRestService {
-
-    private static final int MAX_SPRINT_OFFSET = 60 * 24 * 30;
-    private static final String JIRA_HOURS_ENDPOINT =
-            "/rest/greenhopper/1.0/rapid/charts/sprintreport?sprintId=%d&rapidViewId=%d";
-    private static final String JIRA_BOARDS_ENDPOINT = "/rest/agile/1.0/board";
-    private static final String JIRA_SPRINTS_ENDPOINT = "/rest/agile/1.0/board/%d/sprint";
-    private static final String STATE = "state";
-    private static final String START_DATE = "startDate";
-    private static final String CONTENTS = "contents";
-    private static final String VALUE = "value";
-    private static final String VALUES = "values";
-    private static final String NAME = "name";
-    private static final String ID = "id";
-    private static final String TYPE = "type";
-    private static final String PROJECT_ID = "projectId";
-    private static final String PROJECT_KEY = "projectKey";
-    private static final String PROJECT_NAME = "projectName";
-    private static final String LOCATION = "location";
-    private static final String ISSUES_NOT_COMPLETED_INITIAL_ESTIMATE_SUM = "issuesNotCompletedInitialEstimateSum";
-    private static final String ALL_ISSUES_ESTIMATE_SUM = "allIssuesEstimateSum";
-    private static final String ISSUES_NOT_COMPLETED_ESTIMATE_SUM = "issuesNotCompletedEstimateSum";
 
     private final JiraAuthorizationService jiraAuthorizationService;
 
@@ -78,7 +58,7 @@ public class JiraRestService {
         checkFullJiraConfig(project);
         JSONArray jiraBoards = projectService.getJiraUrl(project).flatMap(url ->
                 jiraAuthorizationService.makeAuthorizedGetRequest(url, project.getJiraSecret(),
-                        project.getAccessToken(), String.format("%s/%d", JIRA_BOARDS_ENDPOINT, jiraBoardId)))
+                        project.getAccessToken(), String.format("%s/%d", JiraUtil.JIRA_BOARDS_ENDPOINT, jiraBoardId)))
                 .orElseThrow(BadRequestException::new);
         return getJiraBoardDtos(jiraBoards).stream()
                 .findFirst();
@@ -89,15 +69,15 @@ public class JiraRestService {
 
         for (int i = 0; i < jiraBoards.length(); i++) {
             JSONObject board = jiraBoards.getJSONObject(i);
-            JSONObject boardProjectDetails = board.getJSONObject(LOCATION);
+            JSONObject boardProjectDetails = board.getJSONObject(JiraUtil.LOCATION);
 
             JiraBoardDto jiraBoardDto = new JiraBoardDto()
-                    .boardName(board.getString(NAME))
-                    .boardId(board.getLong(ID))
-                    .boardType(board.getString(TYPE))
-                    .projectId(boardProjectDetails.getLong(PROJECT_ID))
-                    .projectKey(boardProjectDetails.getString(PROJECT_KEY))
-                    .projectName(boardProjectDetails.getString(PROJECT_NAME));
+                    .boardName(board.getString(JiraUtil.NAME))
+                    .boardId(board.getLong(JiraUtil.ID))
+                    .boardType(board.getString(JiraUtil.TYPE))
+                    .projectId(boardProjectDetails.getLong(JiraUtil.PROJECT_ID))
+                    .projectKey(boardProjectDetails.getString(JiraUtil.PROJECT_KEY))
+                    .projectName(boardProjectDetails.getString(JiraUtil.PROJECT_NAME));
 
             jiraBoardDtos.add(jiraBoardDto);
         }
@@ -108,9 +88,9 @@ public class JiraRestService {
         checkFullJiraConfig(project);
         JSONArray jiraBoards = projectService.getJiraUrl(project).flatMap(url ->
                 jiraAuthorizationService.makeAuthorizedGetRequest(url, project.getJiraSecret(),
-                        project.getAccessToken(), JIRA_BOARDS_ENDPOINT))
+                        project.getAccessToken(), JiraUtil.JIRA_BOARDS_ENDPOINT))
                 .orElseThrow(BadRequestException::new)
-                .getJSONObject(0).getJSONArray(VALUES);
+                .getJSONObject(0).getJSONArray(JiraUtil.VALUES);
         return getJiraBoardDtos(jiraBoards);
     }
 
@@ -151,26 +131,32 @@ public class JiraRestService {
         Project project = sprint.getProject();
         JSONArray jiraSprints = projectService.getJiraUrl(project)
                 .flatMap(url -> jiraAuthorizationService.makeAuthorizedGetRequest(url, project.getJiraSecret(),
-                        project.getAccessToken(), String.format(JIRA_SPRINTS_ENDPOINT, project.getJiraBoardId())))
+                        project.getAccessToken(),
+                        String.format(JiraUtil.JIRA_SPRINTS_ENDPOINT, project.getJiraBoardId())))
                 .orElseThrow(BadRequestException::new)
                 .getJSONObject(0)
-                .getJSONArray(VALUES);
+                .getJSONArray(JiraUtil.VALUES);
 
         List<JiraSprintDto> jiraSprintDtos = new LinkedList<>();
         for (int i = 0; i < jiraSprints.length(); i++) {
             JSONObject sprintJsonObject = jiraSprints.getJSONObject(i);
-            LocalDateTime jiraSprintStart = convertLocalDateTimeFromUtc(sprintJsonObject.getString(START_DATE));
+            LocalDateTime jiraSprintStart =
+                    convertLocalDateTimeFromUtc(sprintJsonObject.getString(JiraUtil.START_DATE));
             if (Duration.between(jiraSprintStart, sprint.getDurationPeriod().getStart()).toMinutes()
-                    <= MAX_SPRINT_OFFSET) {
-                JiraSprintDto jiraSprintDto = new JiraSprintDto()
-                        .name(sprintJsonObject.getString(NAME))
-                        .id(sprintJsonObject.getLong(ID))
-                        .state(sprintJsonObject.getString(STATE))
-                        .startDate(jiraSprintStart);
+                    <= JiraUtil.MAX_SPRINT_OFFSET) {
+                JiraSprintDto jiraSprintDto = getJiraSprintDto(sprintJsonObject, jiraSprintStart);
                 jiraSprintDtos.add(jiraSprintDto);
             }
         }
         return jiraSprintDtos;
+    }
+
+    private JiraSprintDto getJiraSprintDto(JSONObject sprintJsonObject, LocalDateTime jiraSprintStart) {
+        return new JiraSprintDto()
+                .name(sprintJsonObject.getString(JiraUtil.NAME))
+                .id(sprintJsonObject.getLong(JiraUtil.ID))
+                .state(sprintJsonObject.getString(JiraUtil.STATE))
+                .startDate(jiraSprintStart);
     }
 
     private LocalDateTime convertLocalDateTimeFromUtc(String date) {
@@ -187,15 +173,14 @@ public class JiraRestService {
             JSONObject jiraNumbers = projectService.getJiraUrl(project)
                     .flatMap(url -> jiraAuthorizationService.makeAuthorizedGetRequest(url, project.getJiraSecret(),
                             project.getAccessToken(),
-                            String.format(JIRA_HOURS_ENDPOINT, jiraSprintId, project.getJiraBoardId())))
+                            String.format(JiraUtil.JIRA_HOURS_ENDPOINT, jiraSprintId, project.getJiraBoardId())))
                     .orElseThrow(BadRequestException::new)
                     .getJSONObject(0)
-                    .getJSONObject(CONTENTS);
+                    .getJSONObject(JiraUtil.CONTENTS);
 
-            long estimatedPlanned = jiraNumbers.getJSONObject(ISSUES_NOT_COMPLETED_INITIAL_ESTIMATE_SUM).getLong(VALUE);
-            long finalPlanned =
-                    (jiraNumbers.getJSONObject(ALL_ISSUES_ESTIMATE_SUM).getLong(VALUE) + estimatedPlanned) / 2;
-            long burned = finalPlanned - jiraNumbers.getJSONObject(ISSUES_NOT_COMPLETED_ESTIMATE_SUM).getLong(VALUE);
+            long estimatedPlanned = JiraUtil.getEstimatedPlanned(jiraNumbers);
+            long finalPlanned = JiraUtil.getFinalPlanned(jiraNumbers, estimatedPlanned);
+            long burned = JiraUtil.getTotalTimeBurned(jiraNumbers);
 
             sprintStats.setEstimatedTimePlanned(Duration.ofSeconds(estimatedPlanned));
             sprintStats.setFinalTimePlanned(Duration.ofSeconds(finalPlanned));
