@@ -11,12 +11,24 @@ public class SprintCreationWizard {
 
     private final SprintService sprintService;
 
+    private String name;
+    private String notificationMessage;
     private Project project;
     private LocalDateTimePeriod enrollmentPeriod;
     private LocalDateTimePeriod durationPeriod;
 
     SprintCreationWizard(SprintService sprintService) {
         this.sprintService = Objects.requireNonNull(sprintService);
+    }
+
+    public SprintCreationWizard withName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public SprintCreationWizard withNotificationMessage(String notificationMessage) {
+        this.notificationMessage = notificationMessage;
+        return this;
     }
 
     public SprintCreationWizard withProject(Project project) {
@@ -41,6 +53,8 @@ public class SprintCreationWizard {
             throw new IllegalStateException("enrollmentPeriod must be strictly before durationPeriod");
         }
 
+        sprint.setName(name);
+        sprint.setNotificationMessage(notificationMessage);
         sprint.setProject(AssertionUtil.require("project", project));
         sprint.setDurationPeriod(AssertionUtil.require("durationPeriod", durationPeriod));
         sprint.setEnrollmentPeriod(AssertionUtil.require("enrollmentPeriod", enrollmentPeriod));

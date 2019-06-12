@@ -55,7 +55,17 @@ public class EmailMessage implements Message {
 
     @Override
     public LocalDateTime getDurationStart() {
-        return sprint.getDurationPeriod().getEnd();
+        return sprint.getDurationPeriod().getStart();
+    }
+
+    @Override
+    public String getSprintName() {
+        return sprint.getName();
+    }
+
+    @Override
+    public String getSprintNotificationMessage() {
+        return sprint.getNotificationMessage();
     }
 
     @Override

@@ -22,6 +22,10 @@ public class Sprint extends BaseEntity {
 
     private final SprintStats stats = new SprintStats();
 
+    private String name;
+
+    private String notificationMessage;
+
     @ManyToOne
     @JoinColumn(nullable = false)
     private Project project;
