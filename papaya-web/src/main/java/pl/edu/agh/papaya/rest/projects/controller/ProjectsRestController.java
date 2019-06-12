@@ -1,10 +1,14 @@
 package pl.edu.agh.papaya.rest.projects.controller;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import pl.edu.agh.papaya.api.model.AvailabilityDto;
+import pl.edu.agh.papaya.api.model.CoefficientGraphDto;
 import pl.edu.agh.papaya.api.model.JiraBoardDto;
 import pl.edu.agh.papaya.api.model.JiraConfigDto;
 import pl.edu.agh.papaya.api.model.JiraSprintDto;
@@ -32,6 +36,18 @@ public class ProjectsRestController implements ProjectsApi {
     private final AvailabilityRestService availabilityRestService;
 
     private final SprintsRestService sprintsRestService;
+
+    @Override
+    public ResponseEntity<CoefficientGraphDto> getCoefficientGraph(Long projectId, Long from, Long to) {
+        return projectsRestService.getCoefficientGraph(
+                projectId,
+                localDateFromTimestamp(from),
+                localDateFromTimestamp(to));
+    }
+
+    private LocalDate localDateFromTimestamp(Long from) {
+        return Instant.ofEpochSecond(from).atZone(ZoneId.systemDefault()).toLocalDate();
+    }
 
     @Override
     public ResponseEntity<ProjectDto> addProject(ProjectDto projectDto) {
