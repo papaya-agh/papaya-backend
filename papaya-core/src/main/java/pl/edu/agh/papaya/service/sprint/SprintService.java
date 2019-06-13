@@ -135,6 +135,16 @@ public class SprintService {
                 .reduce(Duration.ZERO, Duration::plus);
     }
 
+    public double getAverageCoefficient(Sprint sprint) {
+        if (sprint.getAverageCoefficientCache() != null) {
+            return sprint.getAverageCoefficientCache();
+        }
+
+        double computed = computeAverageSprintCoefficient(sprint);
+        sprint.setAverageCoefficientCache(computed);
+        return computed;
+    }
+
     public Optional<Sprint> getPrecedingSprint(Sprint sprint, List<SprintState> sprintStates,
             LocalDateTime evaluationTime) {
         return getPrecedingSprints(sprint, sprintStates, evaluationTime).stream().findFirst();

@@ -1,11 +1,17 @@
 package pl.edu.agh.papaya.rest.projects.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.papaya.api.model.CoefficientGraphDto;
+import pl.edu.agh.papaya.api.model.CoefficientGraphPointDto;
 import pl.edu.agh.papaya.api.model.JiraBoardDto;
 import pl.edu.agh.papaya.api.model.JiraConfigDto;
 import pl.edu.agh.papaya.api.model.ProjectDto;
@@ -17,6 +23,7 @@ import pl.edu.agh.papaya.mappers.UserInProjectMapper;
 import pl.edu.agh.papaya.mappers.UserMapper;
 import pl.edu.agh.papaya.mappers.UserRoleMapper;
 import pl.edu.agh.papaya.model.Project;
+import pl.edu.agh.papaya.model.SprintState;
 import pl.edu.agh.papaya.model.UserInProject;
 import pl.edu.agh.papaya.model.UserRole;
 import pl.edu.agh.papaya.rest.common.UserIdentificationService;
@@ -26,6 +33,7 @@ import pl.edu.agh.papaya.security.UserContext;
 import pl.edu.agh.papaya.security.UserNotAuthorizedException;
 import pl.edu.agh.papaya.security.UserService;
 import pl.edu.agh.papaya.service.project.ProjectService;
+import pl.edu.agh.papaya.service.sprint.SprintService;
 import pl.edu.agh.papaya.util.BadRequestException;
 import pl.edu.agh.papaya.util.ConflictException;
 import pl.edu.agh.papaya.util.ForbiddenAccessException;
@@ -33,13 +41,15 @@ import pl.edu.agh.papaya.util.NotAcceptableException;
 import pl.edu.agh.papaya.util.ResourceNotFoundException;
 
 @Service
-@SuppressWarnings("checkstyle:ClassFanOutComplexity")
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling"})
 @RequiredArgsConstructor
 public class ProjectsRestService {
 
     private final UserContext userContext;
 
     private final ProjectService projectService;
+
+    private final SprintService sprintService;
 
     private final ProjectMapper projectMapper;
 
@@ -193,5 +203,22 @@ public class ProjectsRestService {
         jiraRestService.setJiraBoard(project, jiraBoardDto);
 
         return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<CoefficientGraphDto> getCoefficientGraph(Long projectId, LocalDate from, LocalDate to) {
+        getValidProject(projectId);
+
+        Stream<CoefficientGraphPointDto> points =
+                sprintService.getByStateInProject(SprintState.CLOSED, projectId, LocalDateTime.now())
+                        .stream()
+                        .filter(sprint -> from == null || sprint.getDateClosed().isAfter(from.atStartOfDay()))
+                        .filter(sprint -> to == null || sprint.getDateClosed().isBefore(to.plusDays(1).atStartOfDay()))
+                        .map(sprint -> new CoefficientGraphPointDto()
+                                .time(sprint.getDateClosed().atZone(ZoneId.systemDefault()).toEpochSecond())
+                                .coefficient(sprint.getCoefficient())
+                                .averageCoefficient(sprintService.getAverageCoefficient(sprint)));
+
+        return ResponseEntity.ok(new CoefficientGraphDto()
+                .points(points.collect(Collectors.toList())));
     }
 }
