@@ -47,7 +47,9 @@ public class SprintMapper implements Mapper<Sprint, SprintDto> {
                                 .map(Duration::toMinutes)
                                 .orElse(null))
                 .coefficient(modelSprint.getStats().getCoefficient())
-                .sprintState(sprintStateMapper.mapToApi(modelSprint.getSprintState(evaluationTime)));
+                .sprintState(sprintStateMapper.mapToApi(modelSprint.getSprintState(evaluationTime)))
+                .name(modelSprint.getName())
+                .notificationMessage(modelSprint.getNotificationMessage());
     }
 
     @Override
