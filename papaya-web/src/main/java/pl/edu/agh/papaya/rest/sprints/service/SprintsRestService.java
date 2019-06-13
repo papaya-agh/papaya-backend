@@ -138,10 +138,6 @@ public class SprintsRestService {
         LocalDateTimePeriod enrollmentPeriod = localDateTimePeriodMapper.mapFromApi(sprintDto.getEnrollmentPeriod());
         LocalDateTimePeriod durationPeriod = localDateTimePeriodMapper.mapFromApi(sprintDto.getDurationPeriod());
 
-        if (inOverlapWithPreviousSprint(project, durationPeriod)) {
-            throw new IllegalStateException("Cannot create sprint starting before the last one ended");
-        }
-
         String name = sprintDto.getName();
         String notificationMessage = sprintDto.getNotificationMessage();
 
@@ -153,11 +149,6 @@ public class SprintsRestService {
                 .withDurationPeriod(durationPeriod)
                 .create();
         return ResponseEntity.ok(sprintMapper.mapToApi(created));
-    }
-
-    private boolean inOverlapWithPreviousSprint(Project project, LocalDateTimePeriod durationPeriod) {
-        Optional<Sprint> lastSprintOpt = sprintService.getLastInProject(project.getId());
-        return lastSprintOpt.isPresent() && durationPeriod.isBefore(lastSprintOpt.get().getDurationPeriod());
     }
 
     public ResponseEntity<SprintSummaryDto> getSprintSummary(Long projectId, Long sprintId, Long jiraSprintId) {
@@ -236,6 +227,8 @@ public class SprintsRestService {
         if (sprintDto.getSprintState() == SprintStateDto.CLOSED) {
             return closeSprint(sprint, sprintDto.getTimeBurned(), sprintDto.getEstimatedTimePlanned(),
                     sprintDto.getFinalTimePlanned());
+        } else if (sprintDto.getSprintState() == SprintStateDto.IN_PROGRESS) {
+            return openSprint(sprint);
         }
 
         throw new BadRequestException("The only available sprint modification is closing the sprint");
@@ -255,6 +248,17 @@ public class SprintsRestService {
             Sprint changedSprint =
                     sprintService.closeSprint(sprint, timeBurned, estimatedTimePlanned, finalTimePlanned, timeNow);
 
+            return ResponseEntity.ok(sprintMapper.mapToApi(changedSprint));
+        } catch (IllegalStateException e) {
+            throw new BadRequestException(e);
+        }
+    }
+
+    private ResponseEntity<SprintDto> openSprint(Sprint sprint) {
+        LocalDateTime timeNow = LocalDateTime.now();
+        try {
+            Sprint changedSprint =
+                    sprintService.openSprint(sprint, timeNow);
             return ResponseEntity.ok(sprintMapper.mapToApi(changedSprint));
         } catch (IllegalStateException e) {
             throw new BadRequestException(e);
