@@ -185,6 +185,10 @@ public class SprintService {
         return sprintRepository.findById(id);
     }
 
+    public void removeSprint(Sprint sprint) {
+        sprintRepository.delete(sprint);
+    }
+
     @FunctionalInterface
     private interface SprintStateQuery {
 
