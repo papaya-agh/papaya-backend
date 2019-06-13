@@ -158,4 +158,9 @@ public class ProjectsRestController implements ProjectsApi {
     public ResponseEntity<Void> setJiraSecret(JiraConfigDto jiraConfigDto, Long projectId) {
         return projectsRestService.setJiraSecret(jiraConfigDto, projectId);
     }
+
+    @Override
+    public ResponseEntity<Void> removeSprint(Long projectId, Long sprintId) {
+        return sprintsRestService.removeSprint(projectId, sprintId);
+    }
 }

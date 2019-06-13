@@ -272,4 +272,15 @@ public class SprintsRestService {
 
         return ResponseEntity.ok(jiraSprintDtos);
     }
+
+    public ResponseEntity<Void> removeSprint(Long projectId, Long sprintId) {
+        Sprint sprint = getValidSprint(projectId, sprintId);
+
+        if (!sprint.getProject().isAdmin(userContext.getUser())) {
+            throw new ForbiddenAccessException();
+        }
+        sprintService.removeSprint(sprint);
+
+        return ResponseEntity.noContent().build();
+    }
 }

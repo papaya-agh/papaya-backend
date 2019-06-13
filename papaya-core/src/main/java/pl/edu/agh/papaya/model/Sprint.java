@@ -3,6 +3,7 @@ package pl.edu.agh.papaya.model;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -36,10 +37,10 @@ public class Sprint extends BaseEntity {
 
     private LocalDateTime dateClosed;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Availability> availabilities;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notifications;
 
     public SprintState getSprintState() {
