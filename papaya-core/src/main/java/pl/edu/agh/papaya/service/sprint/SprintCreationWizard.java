@@ -49,8 +49,8 @@ public class SprintCreationWizard {
     public Sprint create() {
         Sprint sprint = new Sprint();
 
-        if (!enrollmentPeriod.isBefore(durationPeriod)) {
-            throw new IllegalStateException("enrollmentPeriod must be strictly before durationPeriod");
+        if (enrollmentPeriod.isAfter(durationPeriod)) {
+            throw new IllegalStateException("Enrollment period must be before duration period");
         }
 
         sprint.setName(name);

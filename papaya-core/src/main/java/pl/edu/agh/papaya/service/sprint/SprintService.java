@@ -51,7 +51,7 @@ public class SprintService {
             LocalDateTime evaluationTime) {
         return sprintStates.stream()
                 .flatMap(sprintState -> getByStateInProject(sprintState, projectId, evaluationTime).stream())
-                .sorted(Comparator.comparing(sprint -> sprint.getEnrollmentPeriod().getStart()))
+                .sorted(Comparator.comparing(sprint -> sprint.getDurationPeriod().getStart()))
                 .collect(Collectors.toList());
     }
 
@@ -63,7 +63,7 @@ public class SprintService {
             LocalDateTime evaluationTime) {
         return sprintStates.stream()
                 .flatMap(sprintState -> getFirstByStateInProject(sprintState, projectId, evaluationTime).stream())
-                .min(Comparator.comparing(sprint -> sprint.getEnrollmentPeriod().getStart()));
+                .min(Comparator.comparing(sprint -> sprint.getDurationPeriod().getStart()));
     }
 
     public Optional<Sprint> getFirstByStateInProject(SprintState sprintState, Long projectId,
@@ -87,17 +87,39 @@ public class SprintService {
     }
 
     public Sprint closeSprint(Sprint sprint, Duration timeBurned, Duration estimatedTimePlanned,
-            Duration finalTimePlanned, LocalDateTime dateClosed) {
+            Duration finalTimePlanned, LocalDateTime evaluationTime) {
         if (sprint.getDateClosed() != null) {
             throw new IllegalStateException("Sprint already closed");
         }
 
-        if (sprint.getSprintState(dateClosed) != SprintState.FINISHED) {
-            throw new IllegalStateException("Sprint cannot be closed before it has ended");
+        SprintState sprintState = sprint.getSprintState(evaluationTime);
+
+        if (sprintState != SprintState.FINISHED && sprintState != SprintState.IN_PROGRESS) {
+            throw new IllegalStateException("Sprint cannot be closed before it has started");
         }
 
-        sprint.setDateClosed(dateClosed);
+        if (sprintState == SprintState.IN_PROGRESS) {
+            sprint.getDurationPeriod().setEnd(evaluationTime);
+        }
+
+        sprint.setDateClosed(evaluationTime);
         updateSprintStats(sprint, estimatedTimePlanned, finalTimePlanned, timeBurned);
+
+        return sprintRepository.save(sprint);
+    }
+
+    public Sprint openSprint(Sprint sprint, LocalDateTime evaluationTime) {
+        SprintState sprintState = sprint.getSprintState(evaluationTime);
+
+        if (sprintState != SprintState.PADDING && sprintState != SprintState.DECLARABLE) {
+            throw new IllegalStateException("Sprint cannot be opened before its declarations have started");
+        }
+
+        if (sprintState == SprintState.DECLARABLE) {
+            sprint.getEnrollmentPeriod().setEnd(evaluationTime);
+        }
+
+        sprint.getDurationPeriod().setStart(evaluationTime);
 
         return sprintRepository.save(sprint);
     }
