@@ -46,6 +46,10 @@ public class ProjectsRestController implements ProjectsApi {
     }
 
     private LocalDate localDateFromTimestamp(Long from) {
+        if (from == null) {
+            return null;
+        }
+
         return Instant.ofEpochSecond(from).atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
