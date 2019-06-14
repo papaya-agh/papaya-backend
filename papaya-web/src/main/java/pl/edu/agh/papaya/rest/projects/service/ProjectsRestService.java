@@ -3,6 +3,7 @@ package pl.edu.agh.papaya.rest.projects.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -216,7 +217,8 @@ public class ProjectsRestService {
                         .map(sprint -> new CoefficientGraphPointDto()
                                 .time(sprint.getDateClosed().atZone(ZoneId.systemDefault()).toEpochSecond())
                                 .coefficient(sprint.getCoefficient())
-                                .averageCoefficient(sprintService.getAverageCoefficient(sprint)));
+                                .averageCoefficient(sprintService.getAverageCoefficient(sprint)))
+                        .sorted(Comparator.comparing(CoefficientGraphPointDto::getTime));
 
         return ResponseEntity.ok(new CoefficientGraphDto()
                 .points(points.collect(Collectors.toList())));
